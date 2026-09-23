@@ -90,6 +90,7 @@ class BookingController extends Controller
             'acceptedQuotationVersion.lineItems',
             'items.supplier',
             'checklistItems.doneBy',
+            'payments', 'invoices',
         ]);
 
         $activities = Activity::forSubject($booking)->latest()->limit(20)->get();

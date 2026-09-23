@@ -63,6 +63,16 @@ class Booking extends Model
         return $this->hasMany(BookingChecklistItem::class)->orderBy('sort_order');
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(CustomerPayment::class)->orderByDesc('paid_at');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class)->orderByDesc('issued_at');
+    }
+
     /**
      * Derived, never stored — the trip is "in progress" only while it's
      * genuinely running and the booking hasn't been cancelled.
@@ -87,6 +97,25 @@ class Booking extends Model
     public function totalSellPrice(): float
     {
         return (float) $this->items->sum('sell_price');
+    }
+
+    /**
+     * Sum of valid (non-voided) customer payments — derived, never
+     * stored, so it can never drift from the actual payment records.
+     */
+    public function totalPaid(): float
+    {
+        return (float) $this->payments->whereNull('voided_at')->sum('amount');
+    }
+
+    public function amountRemaining(): float
+    {
+        return $this->totalSellPrice() - $this->totalPaid();
+    }
+
+    public function isFullyPaid(): bool
+    {
+        return $this->totalSellPrice() > 0 && $this->amountRemaining() <= 0.0;
     }
 
     /**

@@ -7,9 +7,11 @@ use App\Http\Controllers\BookingChecklistItemController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingItemController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\FollowUpController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ItineraryController;
 use App\Http\Controllers\ItineraryDayController;
 use App\Http\Controllers\ItineraryItemController;
@@ -100,6 +102,14 @@ Route::middleware('auth')->group(function () {
 
         Route::post('bookings/{booking}/checklist-items', [BookingChecklistItemController::class, 'store'])->name('booking-checklist-items.store');
         Route::patch('booking-checklist-items/{bookingChecklistItem}/complete', [BookingChecklistItemController::class, 'complete'])->name('booking-checklist-items.complete');
+
+        Route::post('bookings/{booking}/payments', [CustomerPaymentController::class, 'store'])->name('customer-payments.store');
+        Route::post('customer-payments/{customerPayment}/void', [CustomerPaymentController::class, 'void'])->name('customer-payments.void');
+        Route::get('customer-payments/{customerPayment}/receipt', [CustomerPaymentController::class, 'receipt'])->name('customer-payments.receipt');
+
+        Route::post('bookings/{booking}/invoice', [InvoiceController::class, 'store'])->name('invoices.store');
+        Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+        Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
 
         Route::get('follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
         Route::post('follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
