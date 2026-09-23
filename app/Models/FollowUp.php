@@ -64,6 +64,7 @@ class FollowUp extends Model
             $this->followupable instanceof Customer => $this->followupable->name,
             $this->followupable instanceof Lead => "Lead: {$this->followupable->name}",
             $this->followupable instanceof Enquiry => "Enquiry: {$this->followupable->destination}",
+            $this->followupable instanceof Trip => "Trip: {$this->followupable->destination}",
             default => 'Unknown',
         };
     }
@@ -74,6 +75,7 @@ class FollowUp extends Model
             $this->followupable instanceof Customer => route('customers.show', $this->followupable),
             $this->followupable instanceof Lead => route('leads.show', $this->followupable),
             $this->followupable instanceof Enquiry => route('enquiries.show', $this->followupable),
+            $this->followupable instanceof Trip => route('trips.show', $this->followupable),
             default => '#',
         };
     }

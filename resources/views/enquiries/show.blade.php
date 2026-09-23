@@ -5,8 +5,12 @@
 @section('content')
     <x-page-header :title="$enquiry->destination" subtitle="For {{ $enquiry->customer->name }}">
         <x-slot:actions>
-            <a href="{{ route('enquiries.edit', $enquiry) }}"
+            <a href="{{ route('trips.create', ['enquiry_id' => $enquiry->id]) }}"
                class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
+                Start planning
+            </a>
+            <a href="{{ route('enquiries.edit', $enquiry) }}"
+               class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
                 Edit
             </a>
         </x-slot:actions>

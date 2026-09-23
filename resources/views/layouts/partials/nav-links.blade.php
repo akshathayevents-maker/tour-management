@@ -16,6 +16,14 @@
        class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('enquiries.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
         Enquiries
     </a>
+    <a href="{{ route('trips.index') }}"
+       class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('trips.*', 'itineraries.*', 'quotation-versions.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
+        Trips
+    </a>
+    <a href="{{ route('suppliers.index') }}"
+       class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('suppliers.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
+        Suppliers
+    </a>
     <a href="{{ route('follow-ups.index') }}"
        class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('follow-ups.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
         Follow-ups

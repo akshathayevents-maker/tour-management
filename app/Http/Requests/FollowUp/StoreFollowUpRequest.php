@@ -16,6 +16,7 @@ class StoreFollowUpRequest extends FormRequest
         'lead' => \App\Models\Lead::class,
         'customer' => \App\Models\Customer::class,
         'enquiry' => \App\Models\Enquiry::class,
+        'trip' => \App\Models\Trip::class,
     ];
 
     public function authorize(): bool

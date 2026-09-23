@@ -45,6 +45,8 @@
                                 <a href="{{ route('leads.create') }}" class="block px-3 py-2 hover:bg-slate-50">Lead</a>
                                 <a href="{{ route('customers.create') }}" class="block px-3 py-2 hover:bg-slate-50">Customer</a>
                                 <a href="{{ route('enquiries.create') }}" class="block px-3 py-2 hover:bg-slate-50">Enquiry</a>
+                                <a href="{{ route('trips.create') }}" class="block px-3 py-2 hover:bg-slate-50">Trip</a>
+                                <a href="{{ route('suppliers.create') }}" class="block px-3 py-2 hover:bg-slate-50">Supplier</a>
                                 <a href="{{ route('follow-ups.index') }}" class="block px-3 py-2 hover:bg-slate-50">Follow-up</a>
                             </div>
                         </details>
