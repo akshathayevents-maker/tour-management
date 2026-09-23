@@ -8,30 +8,25 @@
 </head>
 <body class="h-full">
     <div class="min-h-full lg:flex">
+        {{-- Mobile nav toggle --}}
+        <details class="lg:hidden bg-slate-900 text-slate-200 group">
+            <summary class="list-none flex items-center justify-between h-14 px-4 text-white cursor-pointer">
+                <span class="text-lg font-semibold">{{ config('app.name') }}</span>
+                <span class="text-sm text-slate-300 group-open:hidden">Menu</span>
+                <span class="text-sm text-slate-300 hidden group-open:inline">Close</span>
+            </summary>
+            <nav class="px-3 pb-4 space-y-1">
+                @include('layouts.partials.nav-links')
+            </nav>
+        </details>
+
         {{-- Sidebar --}}
-        <aside class="lg:w-64 lg:flex-shrink-0 bg-slate-900 text-slate-200">
+        <aside class="hidden lg:block lg:w-64 lg:flex-shrink-0 bg-slate-900 text-slate-200">
             <div class="flex items-center h-16 px-6 text-lg font-semibold text-white">
                 {{ config('app.name') }}
             </div>
             <nav class="px-3 py-4 space-y-1">
-                <a href="{{ route('dashboard') }}"
-                   class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                    Dashboard
-                </a>
-
-                @role('super_admin')
-                    <a href="{{ route('admin.companies.index') }}"
-                       class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.companies.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                        Companies
-                    </a>
-                @endrole
-
-                @hasanyrole('super_admin|company_admin')
-                    <a href="{{ route('admin.users.index') }}"
-                       class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
-                        Users
-                    </a>
-                @endhasanyrole
+                @include('layouts.partials.nav-links')
             </nav>
         </aside>
 
@@ -41,7 +36,20 @@
                 <h1 class="text-lg font-semibold text-slate-900">@yield('title', 'Dashboard')</h1>
 
                 <div class="flex items-center gap-4">
-                    <span class="text-sm text-slate-500">
+                    @hasanyrole('company_admin|company_user')
+                        <details class="relative">
+                            <summary class="list-none cursor-pointer rounded-md bg-slate-900 text-white text-sm font-medium px-3 py-1.5 hover:bg-slate-700">
+                                + Quick add
+                            </summary>
+                            <div class="absolute right-0 mt-2 w-44 bg-white rounded-md shadow-lg border border-slate-200 py-1 text-sm z-10">
+                                <a href="{{ route('leads.create') }}" class="block px-3 py-2 hover:bg-slate-50">Lead</a>
+                                <a href="{{ route('customers.create') }}" class="block px-3 py-2 hover:bg-slate-50">Customer</a>
+                                <a href="{{ route('enquiries.create') }}" class="block px-3 py-2 hover:bg-slate-50">Enquiry</a>
+                                <a href="{{ route('follow-ups.index') }}" class="block px-3 py-2 hover:bg-slate-50">Follow-up</a>
+                            </div>
+                        </details>
+                    @endhasanyrole
+                    <span class="hidden sm:inline text-sm text-slate-500">
                         {{ auth()->user()->name }}
                         @if(auth()->user()->company)
                             &middot; {{ auth()->user()->company->name }}
