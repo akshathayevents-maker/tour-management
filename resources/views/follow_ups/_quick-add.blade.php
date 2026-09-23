@@ -6,7 +6,7 @@
     <div class="flex gap-2">
         <input type="datetime-local" name="due_at" required
                class="flex-1 rounded-md border-slate-300 shadow-sm text-sm">
-        <button type="submit" class="rounded-md bg-slate-900 text-white text-sm font-medium px-3 py-1.5 hover:bg-slate-700">
+        <button type="submit" class="rounded-md bg-brand-700 text-white text-sm font-medium px-3 py-1.5 hover:bg-brand-800">
             Schedule
         </button>
     </div>

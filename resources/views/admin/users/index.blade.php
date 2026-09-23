@@ -3,47 +3,48 @@
 @section('title', 'Users')
 
 @section('content')
-    <div class="flex justify-between items-center mb-4">
-        <p class="text-sm text-slate-500">
-            @role('super_admin') Staff across every company. @else Staff in your company. @endrole
-        </p>
-        <a href="{{ route('admin.users.create') }}"
-           class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
-            Add user
-        </a>
-    </div>
+    <x-page-header title="Users" :subtitle="auth()->user()->hasRole('super_admin') ? 'Staff across every company.' : 'Staff in your company.'">
+        <x-slot:actions>
+            <x-button tag="a" href="{{ route('admin.users.create') }}">
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" /></svg>
+                Add user
+            </x-button>
+        </x-slot:actions>
+    </x-page-header>
 
-    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+    <div class="hidden sm:block bg-white rounded-lg border border-slate-200 overflow-hidden">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50">
                 <tr>
-                    <th class="px-4 py-2 text-left font-medium text-slate-500">Name</th>
-                    <th class="px-4 py-2 text-left font-medium text-slate-500">Email</th>
-                    <th class="px-4 py-2 text-left font-medium text-slate-500">Company</th>
-                    <th class="px-4 py-2 text-left font-medium text-slate-500">Role</th>
-                    <th class="px-4 py-2 text-left font-medium text-slate-500">Status</th>
-                    <th class="px-4 py-2"></th>
+                    <th class="px-4 py-2.5 text-left font-medium text-slate-500">Name</th>
+                    <th class="px-4 py-2.5 text-left font-medium text-slate-500">Email</th>
+                    <th class="px-4 py-2.5 text-left font-medium text-slate-500">Company</th>
+                    <th class="px-4 py-2.5 text-left font-medium text-slate-500">Role</th>
+                    <th class="px-4 py-2.5 text-left font-medium text-slate-500">Status</th>
+                    <th class="px-4 py-2.5"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @forelse ($users as $user)
-                    <tr>
-                        <td class="px-4 py-2 text-slate-900">{{ $user->name }}</td>
-                        <td class="px-4 py-2 text-slate-500">{{ $user->email }}</td>
-                        <td class="px-4 py-2 text-slate-500">{{ $user->company->name ?? '—' }}</td>
-                        <td class="px-4 py-2 text-slate-500">{{ $user->roles->pluck('name')->join(', ') ?: '—' }}</td>
-                        <td class="px-4 py-2">
-                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                                {{ $user->is_active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600' }}">
-                                {{ $user->is_active ? 'Active' : 'Inactive' }}
-                            </span>
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-2.5">
+                            <div class="flex items-center gap-2.5">
+                                <x-avatar :name="$user->name" size="sm" />
+                                <span class="text-slate-900 font-medium">{{ $user->name }}</span>
+                            </div>
                         </td>
-                        <td class="px-4 py-2 text-right">
+                        <td class="px-4 py-2.5 text-slate-500">{{ $user->email }}</td>
+                        <td class="px-4 py-2.5 text-slate-500">{{ $user->company->name ?? '—' }}</td>
+                        <td class="px-4 py-2.5 text-slate-500">{{ $user->roles->pluck('name')->join(', ') ?: '—' }}</td>
+                        <td class="px-4 py-2.5">
+                            <x-status-badge :color="$user->is_active ? 'green' : 'slate'" :label="$user->is_active ? 'Active' : 'Inactive'" />
+                        </td>
+                        <td class="px-4 py-2.5 text-right">
                             @can('update', $user)
                                 <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}">
                                     @csrf
                                     @method('PATCH')
-                                    <button class="text-sm text-slate-500 hover:text-slate-900">
+                                    <button class="text-xs font-medium text-slate-500 hover:text-slate-900">
                                         {{ $user->is_active ? 'Deactivate' : 'Activate' }}
                                     </button>
                                 </form>
@@ -57,6 +58,21 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
+
+    <div class="sm:hidden space-y-2">
+        @forelse ($users as $user)
+            <div class="flex items-center gap-3 bg-white rounded-lg border border-slate-200 p-3.5">
+                <x-avatar :name="$user->name" />
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-slate-900 truncate">{{ $user->name }}</p>
+                    <p class="text-xs text-slate-500">{{ $user->email }} @if($user->company) · {{ $user->company->name }} @endif</p>
+                </div>
+                <x-status-badge :color="$user->is_active ? 'green' : 'slate'" :label="$user->is_active ? 'Active' : 'Inactive'" />
+            </div>
+        @empty
+            <p class="text-center text-slate-400 py-6">No users yet.</p>
+        @endforelse
     </div>
 
     <div class="mt-4">{{ $users->links() }}</div>

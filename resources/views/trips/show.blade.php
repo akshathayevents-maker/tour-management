@@ -3,46 +3,46 @@
 @section('title', $trip->destination)
 
 @section('content')
-    <x-page-header :title="$trip->destination" subtitle="For {{ $trip->customer->name }}">
-        <x-slot:actions>
-            <a href="{{ route('trips.edit', $trip) }}"
-               class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
-                Edit
-            </a>
-        </x-slot:actions>
-    </x-page-header>
+    {{-- Journey hero --}}
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 px-6 py-6 sm:px-8 sm:py-7 mb-6">
+        <svg class="absolute -right-8 -bottom-10 h-48 w-48 text-white/[0.05]" viewBox="0 0 24 24" fill="currentColor"><path d="M8.161 2.58a1.5 1.5 0 011.678 0l4.144 2.796 4.144-2.796a1.5 1.5 0 012.373 1.229v13.564a1.5 1.5 0 01-.878 1.363l-5.639 2.579a1.5 1.5 0 01-1.259 0L8.5 18.084l-4.144 2.796A1.5 1.5 0 012 19.65V6.087a1.5 1.5 0 01.878-1.363l5.283-2.144z" /></svg>
+        <div class="relative flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <x-status-badge :color="$trip->status->badgeColor()" :label="$trip->status->label()" class="!bg-white/10 !text-white !ring-white/20" />
+                </div>
+                <h2 class="text-2xl sm:text-[26px] font-semibold tracking-tight text-white">{{ $trip->destination }}</h2>
+                <p class="mt-1 text-sm text-brand-200">
+                    For <a href="{{ route('customers.show', $trip->customer) }}" class="text-white hover:underline">{{ $trip->customer->name }}</a>
+                </p>
+            </div>
+            <x-button tag="a" href="{{ route('trips.edit', $trip) }}" size="sm" class="!bg-white/10 !border-white/15 !text-white hover:!bg-white/15">Edit trip</x-button>
+        </div>
+        <div class="relative mt-5 flex flex-wrap gap-x-8 gap-y-3 border-t border-white/10 pt-4">
+            <div>
+                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Travel dates</p>
+                <p class="text-sm font-medium text-white mt-0.5">
+                    {{ $trip->start_date?->format('d M Y') ?? 'Not set' }}
+                    @if ($trip->end_date) &ndash; {{ $trip->end_date->format('d M Y') }} @endif
+                </p>
+            </div>
+            <div>
+                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Travellers</p>
+                <p class="text-sm font-medium text-white mt-0.5">{{ $trip->travellers_count ?? '—' }}</p>
+            </div>
+            @if ($trip->enquiry)
+                <div>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Originating enquiry</p>
+                    <a href="{{ route('enquiries.show', $trip->enquiry) }}" class="text-sm font-medium text-accent-400 hover:text-accent-300 mt-0.5 inline-block">{{ $trip->enquiry->destination }}</a>
+                </div>
+            @endif
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            {{-- Overview --}}
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-sm font-medium text-slate-900">Overview</h3>
-                    <x-status-badge :color="$trip->status->badgeColor()" :label="$trip->status->label()" />
-                </div>
-                <dl class="grid grid-cols-2 gap-y-2 text-sm">
-                    <dt class="text-slate-500">Customer</dt>
-                    <dd class="text-slate-900"><a href="{{ route('customers.show', $trip->customer) }}" class="hover:underline">{{ $trip->customer->name }}</a></dd>
-                    <dt class="text-slate-500">Travel dates</dt>
-                    <dd class="text-slate-900">
-                        {{ $trip->start_date?->format('d M Y') ?? '—' }}
-                        @if ($trip->end_date) &ndash; {{ $trip->end_date->format('d M Y') }} @endif
-                    </dd>
-                    <dt class="text-slate-500">Travellers</dt>
-                    <dd class="text-slate-900">{{ $trip->travellers_count ?? '—' }}</dd>
-                    <dt class="text-slate-500">Enquiry</dt>
-                    <dd class="text-slate-900">
-                        @if ($trip->enquiry)
-                            <a href="{{ route('enquiries.show', $trip->enquiry) }}" class="hover:underline">{{ $trip->enquiry->destination }}</a>
-                        @else — @endif
-                    </dd>
-                </dl>
-            </div>
-
             {{-- Itinerary --}}
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Itinerary</h3>
-
+            <x-summary-panel title="Itinerary">
                 @if (! $trip->itinerary)
                     <x-empty-state
                         title="No itinerary yet."
@@ -50,9 +50,7 @@
                         action-label="Create itinerary" />
                     <form method="POST" action="{{ route('trips.itinerary.store', $trip) }}" class="mt-3">
                         @csrf
-                        <button type="submit" class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
-                            Create itinerary
-                        </button>
+                        <x-button type="submit">Create itinerary</x-button>
                     </form>
                 @else
                     @foreach ($trip->itinerary->days as $day)
@@ -63,41 +61,34 @@
                     <form method="POST" action="{{ route('itinerary-days.store', $trip->itinerary) }}" class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
                         @csrf
                         <input type="hidden" name="day_number" value="{{ $nextDay }}">
-                        <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-3 py-1.5 hover:bg-slate-50">
-                            + Add day {{ $nextDay }}
-                        </button>
+                        <x-button type="submit" variant="secondary">+ Add day {{ $nextDay }}</x-button>
                     </form>
                 @endif
-            </div>
+            </x-summary-panel>
 
             {{-- Quotation --}}
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Quotation</h3>
-
+            <x-summary-panel title="Quotation">
                 @if (! $trip->quotation)
                     <x-empty-state
                         title="No quotation yet."
                         description="Create one when you're ready to price this trip." />
                     <form method="POST" action="{{ route('trips.quotation.store', $trip) }}" class="mt-3">
                         @csrf
-                        <button type="submit" class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
-                            Create quotation
-                        </button>
+                        <x-button type="submit">Create quotation</x-button>
                     </form>
                 @else
                     @include('quotation_versions._summary', ['quotation' => $trip->quotation])
                 @endif
-            </div>
+            </x-summary-panel>
 
             {{-- Booking --}}
             @php $booking = $trip->activeBooking(); @endphp
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-sm font-medium text-slate-900">Booking</h3>
+            <x-summary-panel title="Booking">
+                <x-slot:actions>
                     @if ($booking)
                         <x-status-badge :color="$booking->status->badgeColor()" :label="$booking->status->label()" />
                     @endif
-                </div>
+                </x-slot:actions>
 
                 @if (! $booking)
                     <x-empty-state
@@ -107,9 +98,7 @@
                         @csrf
                         <input type="hidden" name="customer_id" value="{{ $trip->customer_id }}">
                         <input type="hidden" name="trip_id" value="{{ $trip->id }}">
-                        <button type="submit" class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
-                            Create booking
-                        </button>
+                        <x-button type="submit">Create booking</x-button>
                     </form>
                 @else
                     <a href="{{ route('bookings.show', $booking) }}" class="text-sm text-slate-900 font-medium hover:underline">
@@ -124,19 +113,18 @@
                         @endforeach
                     </div>
                 @endif
-            </div>
+            </x-summary-panel>
         </div>
 
         <div class="space-y-6">
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Follow-ups</h3>
+            <x-summary-panel title="Follow-ups">
                 @include('follow_ups._quick-add', ['subjectType' => 'trip', 'subjectId' => $trip->id])
                 @forelse ($followUps as $followUp)
                     @include('follow_ups._item', ['followUp' => $followUp, 'hideSubject' => true])
                 @empty
                     <p class="text-sm text-slate-400 mt-3">No pending follow-ups.</p>
                 @endforelse
-            </div>
+            </x-summary-panel>
         </div>
     </div>
 @endsection

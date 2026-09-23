@@ -10,7 +10,7 @@
                     @if ($payment->isVoided()) &middot; voided: {{ $payment->voided_reason }} @endif
                 </span>
                 <span class="flex items-center gap-2 shrink-0">
-                    <span class="{{ $payment->isVoided() ? 'text-slate-400 line-through' : 'text-slate-700' }} tabular-nums">
+                    <span class="{{ $payment->isVoided() ? 'text-slate-400 line-through' : 'text-slate-700 font-medium' }} tabular-nums">
                         {{ number_format($payment->amount, 2) }}
                     </span>
                     @unless ($payment->isVoided())

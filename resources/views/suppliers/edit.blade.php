@@ -55,7 +55,7 @@
                 Active
             </label>
 
-            <button type="submit" class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
+            <button type="submit" class="rounded-md bg-brand-700 text-white text-sm font-medium px-4 py-2 hover:bg-brand-800">
                 Save changes
             </button>
         </form>

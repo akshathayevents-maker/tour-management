@@ -24,7 +24,7 @@
         </div>
         <div class="flex items-center gap-2 shrink-0">
             @if ($item->sell_price !== null)
-                <span class="text-slate-900 font-medium tabular-nums">{{ number_format($item->sell_price, 2) }}</span>
+                <x-currency :amount="$item->sell_price" size="sm" />
             @endif
             <x-status-badge :color="$item->status->badgeColor()" :label="$item->status->label()" />
         </div>
@@ -40,9 +40,15 @@
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="status" value="{{ $status->value }}">
-                        <button type="submit" class="text-xs rounded-md border border-slate-300 px-2 py-1 text-slate-600 hover:bg-slate-50">
-                            Mark {{ $status->label() }}
-                        </button>
+                        @if ($status === \App\Enums\BookingItemStatus::Cancelled)
+                            <button type="submit" class="text-xs rounded-md border border-slate-200 px-2 py-1 text-red-500 hover:bg-red-50 hover:text-red-700 hover:border-red-200">
+                                Mark {{ $status->label() }}
+                            </button>
+                        @else
+                            <button type="submit" class="text-xs rounded-md border border-slate-300 px-2 py-1 text-slate-600 hover:bg-slate-50">
+                                Mark {{ $status->label() }}
+                            </button>
+                        @endif
                     </form>
                 @endforeach
             @endif
@@ -75,7 +81,7 @@
                            class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
                     <input name="notes" value="{{ $item->notes }}" placeholder="Notes"
                            class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
-                    <button type="submit" class="w-full rounded-md bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700">
+                    <button type="submit" class="w-full rounded-md bg-brand-700 text-white text-xs font-medium px-3 py-1.5 hover:bg-brand-800">
                         Save
                     </button>
                 </form>

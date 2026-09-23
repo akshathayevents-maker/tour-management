@@ -3,88 +3,91 @@
 @section('title', 'Booking #'.$booking->id)
 
 @section('content')
-    <x-page-header title="Booking #{{ $booking->id }}" subtitle="{{ $booking->trip->destination }} · {{ $booking->customer->name }}">
-        <x-slot:actions>
-            @if ($booking->status === \App\Enums\BookingStatus::Confirmed)
-                <form method="POST" action="{{ route('bookings.complete', $booking) }}">
-                    @csrf
-                    <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
-                        Mark completed
-                    </button>
-                </form>
-                <details class="relative">
-                    <summary class="list-none cursor-pointer rounded-md bg-white border border-slate-300 text-red-700 text-sm font-medium px-4 py-2 hover:bg-red-50">
-                        Cancel booking
-                    </summary>
-                    <form method="POST" action="{{ route('bookings.cancel', $booking) }}"
-                          class="absolute right-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-slate-200 p-3 z-10 space-y-2">
-                        @csrf
-                        <input name="cancellation_reason" placeholder="Reason (optional)"
-                               class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
-                        <button type="submit" class="w-full rounded-md bg-red-600 text-white text-xs font-medium px-3 py-1.5 hover:bg-red-700">
-                            Confirm cancellation
-                        </button>
-                    </form>
-                </details>
-            @endif
-        </x-slot:actions>
-    </x-page-header>
+    {{-- Booking dossier hero --}}
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 px-6 py-6 sm:px-8 sm:py-7 mb-6">
+        <svg class="absolute -right-8 -bottom-10 h-48 w-48 text-white/[0.05]" viewBox="0 0 24 24" fill="currentColor"><path d="M8.161 2.58a1.5 1.5 0 011.678 0l4.144 2.796 4.144-2.796a1.5 1.5 0 012.373 1.229v13.564a1.5 1.5 0 01-.878 1.363l-5.639 2.579a1.5 1.5 0 01-1.259 0L8.5 18.084l-4.144 2.796A1.5 1.5 0 012 19.65V6.087a1.5 1.5 0 01.878-1.363l5.283-2.144z" /></svg>
 
-    <div class="flex items-center gap-3 mb-4">
-        <x-status-badge :color="$booking->status->badgeColor()" :label="$booking->status->label()" />
-        @if ($booking->isInProgress())
-            <x-status-badge color="amber" label="Trip in progress" />
-        @endif
-        @if ($booking->acceptedQuotationVersion)
-            <a href="{{ route('quotation-versions.show', $booking->acceptedQuotationVersion) }}" class="text-xs text-slate-400 hover:underline">
-                From Quotation V{{ $booking->acceptedQuotationVersion->version_number }}
-            </a>
-        @endif
+        <div class="relative flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                    <x-status-badge :color="$booking->status->badgeColor()" :label="$booking->status->label()" class="!bg-white/10 !text-white !ring-white/20" />
+                    @if ($booking->isInProgress())
+                        <x-status-badge color="amber" label="Trip in progress" />
+                    @endif
+                    @if ($booking->acceptedQuotationVersion)
+                        <a href="{{ route('quotation-versions.show', $booking->acceptedQuotationVersion) }}" class="text-xs text-brand-300 hover:text-white">
+                            From Quotation V{{ $booking->acceptedQuotationVersion->version_number }}
+                        </a>
+                    @endif
+                </div>
+                <h2 class="text-2xl sm:text-[26px] font-semibold tracking-tight text-white">{{ $booking->trip->destination }}</h2>
+                <p class="mt-1 text-sm text-brand-200">
+                    Booking #{{ $booking->id }} &middot;
+                    <a href="{{ route('customers.show', $booking->customer) }}" class="text-white hover:underline">{{ $booking->customer->name }}</a>
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                @if ($booking->status === \App\Enums\BookingStatus::Confirmed)
+                    <form method="POST" action="{{ route('bookings.complete', $booking) }}">
+                        @csrf
+                        <x-button type="submit" size="sm" class="!bg-white/10 !border-white/15 !text-white hover:!bg-white/15">Mark completed</x-button>
+                    </form>
+                    <details class="relative">
+                        <summary class="list-none cursor-pointer rounded-md bg-white/10 border border-white/15 text-red-200 text-[13px] font-medium px-3.5 py-2 hover:bg-red-500/20 hover:text-white">
+                            Cancel booking
+                        </summary>
+                        <form method="POST" action="{{ route('bookings.cancel', $booking) }}"
+                              class="absolute right-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-slate-200 p-3 z-10 space-y-2">
+                            @csrf
+                            <input name="cancellation_reason" placeholder="Reason (optional)"
+                                   class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
+                            <button type="submit" class="w-full rounded-md bg-red-600 text-white text-xs font-medium px-3 py-1.5 hover:bg-red-700">
+                                Confirm cancellation
+                            </button>
+                        </form>
+                    </details>
+                @endif
+            </div>
+        </div>
+
+        <div class="relative mt-5 grid grid-cols-3 gap-x-3 sm:gap-x-6 border-t border-white/10 pt-4">
+            <div class="min-w-0">
+                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Total</p>
+                <p class="text-base sm:text-xl font-semibold text-white mt-0.5 tabular-nums truncate">{{ number_format($booking->totalSellPrice(), 2) }}</p>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Paid</p>
+                <p class="text-base sm:text-xl font-semibold text-emerald-400 mt-0.5 tabular-nums truncate">{{ number_format($booking->totalPaid(), 2) }}</p>
+            </div>
+            <div class="min-w-0">
+                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Balance</p>
+                <p class="text-base sm:text-xl font-semibold mt-0.5 tabular-nums truncate {{ $booking->amountRemaining() > 0 ? 'text-accent-400' : 'text-white' }}">{{ number_format($booking->amountRemaining(), 2) }}</p>
+            </div>
+        </div>
     </div>
 
     @if ($booking->status === \App\Enums\BookingStatus::Cancelled && $booking->cancellation_reason)
-        <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
-            Cancelled: {{ $booking->cancellation_reason }}
-        </div>
+        <x-alert type="error">Cancelled: {{ $booking->cancellation_reason }}</x-alert>
     @endif
 
     @if ($errors->any())
-        <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+        <x-alert type="error">
             <ul class="list-disc list-inside">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-        </div>
+        </x-alert>
     @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             {{-- Customer payment --}}
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Customer payment</h3>
-
-                <div class="grid grid-cols-3 gap-2 text-center mb-4">
-                    <div>
-                        <p class="text-xs text-slate-500">Total</p>
-                        <p class="text-lg font-semibold text-slate-900">{{ number_format($booking->totalSellPrice(), 2) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-500">Paid</p>
-                        <p class="text-lg font-semibold text-green-700">{{ number_format($booking->totalPaid(), 2) }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-500">Remaining</p>
-                        <p class="text-lg font-semibold {{ $booking->amountRemaining() > 0 ? 'text-amber-700' : 'text-slate-900' }}">
-                            {{ number_format($booking->amountRemaining(), 2) }}
-                        </p>
-                    </div>
-                </div>
-
+            <x-summary-panel title="Customer payment">
                 <div class="flex flex-wrap gap-2 mb-4">
                     @if ($booking->amountRemaining() > 0)
                         <details class="relative">
-                            <summary class="list-none cursor-pointer rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
+                            <summary class="list-none cursor-pointer rounded-md bg-brand-700 text-white text-sm font-medium px-4 py-2 hover:bg-brand-800">
                                 Record payment
                             </summary>
                             <form method="POST" action="{{ route('customer-payments.store', $booking) }}"
@@ -109,7 +112,7 @@
                                                class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
                                     </div>
                                 </details>
-                                <button type="submit" class="w-full rounded-md bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700">
+                                <button type="submit" class="w-full rounded-md bg-brand-700 text-white text-xs font-medium px-3 py-1.5 hover:bg-brand-800">
                                     Save payment
                                 </button>
                             </form>
@@ -177,28 +180,25 @@
                         </a>
                     @endforeach
                 @endif
-            </div>
+            </x-summary-panel>
 
             {{-- Trip Readiness --}}
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Trip readiness</h3>
-                <dl class="space-y-1.5 text-sm">
+            <x-summary-panel title="Trip readiness">
+                <dl class="divide-y divide-slate-50">
                     @foreach ($booking->readinessRows() as $row)
-                        <div class="flex justify-between items-center">
-                            <dt class="text-slate-500">{{ $row['label'] }}</dt>
-                            <dd class="{{ $row['ok'] ? 'text-green-700' : 'text-amber-700' }} font-medium">
+                        <x-detail-row :label="$row['label']">
+                            <span class="{{ $row['ok'] ? 'text-emerald-700' : 'text-amber-700' }}">
                                 {{ $row['ok'] ? '✓' : '⚠' }} {{ $row['state'] }}
-                            </dd>
-                        </div>
+                            </span>
+                        </x-detail-row>
                     @endforeach
                 </dl>
-            </div>
+            </x-summary-panel>
 
             {{-- Quotation reference (if converted from one) --}}
             @if (! $booking->isOperationallyLocked() && $booking->acceptedQuotationVersion && $booking->acceptedQuotationVersion->lineItems->isNotEmpty())
-                <div class="bg-white rounded-lg border border-slate-200 p-5">
-                    <h3 class="text-sm font-medium text-slate-900 mb-1">From the quotation</h3>
-                    <p class="text-xs text-slate-400 mb-3">Convert a line into a service below, or skip it and add services manually.</p>
+                <x-summary-panel title="From the quotation">
+                    <p class="text-xs text-slate-400 -mt-1 mb-3">Convert a line into a service below, or skip it and add services manually.</p>
                     @foreach ($booking->acceptedQuotationVersion->lineItems as $line)
                         <div class="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0 text-sm">
                             <span class="text-slate-700">{{ $line->description }} &mdash; {{ number_format($line->sell_price, 2) }}</span>
@@ -213,13 +213,11 @@
                             </form>
                         </div>
                     @endforeach
-                </div>
+                </x-summary-panel>
             @endif
 
             {{-- Booking items --}}
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Services</h3>
-
+            <x-summary-panel title="Services">
                 @forelse ($booking->items as $item)
                     @include('booking_items._item', ['item' => $item, 'locked' => $booking->isOperationallyLocked()])
                 @empty
@@ -248,7 +246,7 @@
                         This booking is {{ strtolower($booking->status->label()) }} — services are read-only.
                     </p>
                 @endunless
-            </div>
+            </x-summary-panel>
 
             {{-- Supplier costs --}}
             @php
@@ -261,9 +259,7 @@
                     ->merge($booking->items->filter(fn ($item) => $item->supplierPayments->isNotEmpty()));
             @endphp
             @if ($costedItems->isNotEmpty())
-                <div class="bg-white rounded-lg border border-slate-200 p-5">
-                    <h3 class="text-sm font-medium text-slate-900 mb-3">Supplier costs</h3>
-
+                <x-summary-panel title="Supplier costs">
                     @foreach ($costedItems->unique('id') as $item)
                         <div class="py-2.5 border-b border-slate-50 last:border-0 text-sm">
                             <div class="flex items-start justify-between gap-2">
@@ -321,7 +317,7 @@
                                         </select>
                                         <input name="reference" placeholder="Reference (optional)"
                                                class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
-                                        <button type="submit" class="w-full rounded-md bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700">
+                                        <button type="submit" class="w-full rounded-md bg-brand-700 text-white text-xs font-medium px-3 py-1.5 hover:bg-brand-800">
                                             Save payment
                                         </button>
                                     </form>
@@ -329,42 +325,43 @@
                             @endif
                         </div>
                     @endforeach
-                </div>
+                </x-summary-panel>
             @endif
 
             {{-- Activity --}}
             @if ($activities->isNotEmpty())
-                <div class="bg-white rounded-lg border border-slate-200 p-5">
-                    <h3 class="text-sm font-medium text-slate-900 mb-3">Activity</h3>
-                    @foreach ($activities as $activity)
-                        <div class="flex justify-between text-sm py-1 border-b border-slate-50 last:border-0">
-                            <span class="text-slate-600">{{ $activity->description }}</span>
-                            <span class="text-xs text-slate-400">{{ $activity->created_at->diffForHumans() }}</span>
-                        </div>
-                    @endforeach
-                </div>
+                <x-summary-panel title="Activity">
+                    <div class="relative">
+                        @foreach ($activities as $activity)
+                            <div class="flex gap-3 pb-3 last:pb-0">
+                                <div class="flex flex-col items-center shrink-0">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-brand-400 mt-1.5"></span>
+                                    @if (! $loop->last)<span class="w-px flex-1 bg-slate-100 mt-1"></span>@endif
+                                </div>
+                                <div class="flex-1 min-w-0 flex justify-between gap-2 text-sm">
+                                    <span class="text-slate-600">{{ $activity->description }}</span>
+                                    <span class="text-xs text-slate-400 shrink-0">{{ $activity->created_at->diffForHumans() }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-summary-panel>
             @endif
         </div>
 
         <div class="space-y-6">
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Overview</h3>
-                <dl class="grid grid-cols-2 gap-y-2 text-sm">
-                    <dt class="text-slate-500">Customer</dt>
-                    <dd class="text-slate-900"><a href="{{ route('customers.show', $booking->customer) }}" class="hover:underline">{{ $booking->customer->name }}</a></dd>
-                    <dt class="text-slate-500">Trip</dt>
-                    <dd class="text-slate-900"><a href="{{ route('trips.show', $booking->trip) }}" class="hover:underline">{{ $booking->trip->destination }}</a></dd>
-                    <dt class="text-slate-500">Dates</dt>
-                    <dd class="text-slate-900">
+            <x-summary-panel title="Overview">
+                <dl class="divide-y divide-slate-50">
+                    <x-detail-row label="Customer"><a href="{{ route('customers.show', $booking->customer) }}" class="hover:underline">{{ $booking->customer->name }}</a></x-detail-row>
+                    <x-detail-row label="Trip"><a href="{{ route('trips.show', $booking->trip) }}" class="hover:underline">{{ $booking->trip->destination }}</a></x-detail-row>
+                    <x-detail-row label="Dates">
                         {{ $booking->trip->start_date?->format('d M Y') ?? '—' }}
                         @if ($booking->trip->end_date) &ndash; {{ $booking->trip->end_date->format('d M Y') }} @endif
-                    </dd>
+                    </x-detail-row>
                 </dl>
-            </div>
+            </x-summary-panel>
 
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <h3 class="text-sm font-medium text-slate-900 mb-3">Checklist</h3>
-
+            <x-summary-panel title="Checklist">
                 @foreach (\App\Enums\ChecklistPhase::cases() as $phase)
                     @php $items = $booking->checklistItems->where('phase', $phase); @endphp
                     @if ($items->isNotEmpty())
@@ -379,11 +376,9 @@
                     @csrf
                     <input type="text" name="label" placeholder="Add a checklist item…" required
                            class="flex-1 rounded-md border-slate-300 shadow-sm text-sm">
-                    <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-3 py-1.5 hover:bg-slate-50">
-                        Add
-                    </button>
+                    <x-button type="submit" variant="secondary">Add</x-button>
                 </form>
-            </div>
+            </x-summary-panel>
         </div>
     </div>
 @endsection

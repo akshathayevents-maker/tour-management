@@ -7,29 +7,26 @@
 @section('content')
     <x-page-header :title="'Quotation V'.$quotationVersion->version_number" subtitle="For {{ $trip->destination }} · {{ $trip->customer->name }}">
         <x-slot:actions>
-            <a href="{{ route('trips.show', $trip) }}"
-               class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
-                Back to trip
-            </a>
+            <x-button tag="a" href="{{ route('trips.show', $trip) }}" variant="secondary">Back to trip</x-button>
         </x-slot:actions>
     </x-page-header>
 
     @if ($errors->any())
-        <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+        <x-alert type="error">
             <ul class="list-disc list-inside">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-        </div>
+        </x-alert>
     @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white rounded-lg border border-slate-200 p-5">
-                <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-sm font-medium text-slate-900">Line items</h3>
+            <x-summary-panel title="Line items">
+                <x-slot:actions>
                     <x-status-badge :color="$quotationVersion->status->badgeColor()" :label="$quotationVersion->isExpired() ? 'Expired' : $quotationVersion->status->label()" />
+                </x-slot:actions>
                 </div>
 
                 @forelse ($quotationVersion->lineItems as $item)
@@ -84,66 +81,60 @@
                     </form>
                 @endif
 
-                <div class="mt-4 pt-4 border-t border-slate-200 text-sm space-y-1">
-                    <div class="flex justify-between">
+                <div class="mt-4 pt-4 border-t border-slate-200 text-sm space-y-1.5">
+                    <div class="flex justify-between items-center">
                         <span class="text-slate-500">Total selling price</span>
-                        <span class="text-slate-900 font-semibold">{{ number_format($quotationVersion->totalSellPrice(), 2) }}</span>
+                        <x-currency :amount="$quotationVersion->totalSellPrice()" />
                     </div>
                     @if ($quotationVersion->totalCost() !== null)
-                        <div class="flex justify-between text-slate-500">
-                            <span>Total cost</span>
-                            <span>{{ number_format($quotationVersion->totalCost(), 2) }}</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Total cost</span>
+                            <x-currency :amount="$quotationVersion->totalCost()" tone="muted" size="sm" />
                         </div>
-                        <div class="flex justify-between text-slate-500">
-                            <span>Estimated margin</span>
-                            <span>{{ number_format($quotationVersion->estimatedMargin(), 2) }}</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Estimated margin</span>
+                            <x-currency :amount="$quotationVersion->estimatedMargin()" tone="success" size="sm" />
                         </div>
                     @endif
                 </div>
-            </div>
+            </x-summary-panel>
 
             @if ($quotationVersion->isEditable())
-                <div class="bg-white rounded-lg border border-slate-200 p-5">
-                    <h3 class="text-sm font-medium text-slate-900 mb-3">Terms</h3>
+                <x-summary-panel title="Terms">
                     <form method="POST" action="{{ route('quotation-versions.update', $quotationVersion) }}" class="space-y-3">
                         @csrf
                         @method('PATCH')
-                        <div>
-                            <label for="valid_until" class="block text-sm font-medium text-slate-700">Valid until (optional)</label>
+                        <x-field label="Valid until (optional)" name="valid_until">
                             <input id="valid_until" type="date" name="valid_until" value="{{ old('valid_until', optional($quotationVersion->valid_until)->format('Y-m-d')) }}"
-                                   class="mt-1 block w-full sm:w-60 rounded-md border-slate-300 shadow-sm sm:text-sm">
-                        </div>
-                        <div>
-                            <label for="terms" class="block text-sm font-medium text-slate-700">Terms (optional)</label>
+                                   class="block w-full sm:w-60 rounded-md border-slate-300 shadow-sm sm:text-sm">
+                        </x-field>
+                        <x-field label="Terms (optional)" name="terms">
                             <textarea id="terms" name="terms" rows="3"
-                                      class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">{{ old('terms', $quotationVersion->terms) }}</textarea>
-                        </div>
-                        <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
-                            Save
-                        </button>
+                                      class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">{{ old('terms', $quotationVersion->terms) }}</textarea>
+                        </x-field>
+                        <x-button type="submit" variant="secondary">Save</x-button>
                     </form>
-                </div>
+                </x-summary-panel>
             @elseif ($quotationVersion->terms || $quotationVersion->valid_until)
-                <div class="bg-white rounded-lg border border-slate-200 p-5 text-sm">
-                    <h3 class="text-sm font-medium text-slate-900 mb-2">Terms</h3>
+                <x-summary-panel title="Terms">
                     @if ($quotationVersion->valid_until)
-                        <p class="text-slate-500">Valid until {{ $quotationVersion->valid_until->format('d M Y') }}</p>
+                        <p class="text-sm text-slate-500">Valid until {{ $quotationVersion->valid_until->format('d M Y') }}</p>
                     @endif
                     @if ($quotationVersion->terms)
-                        <p class="text-slate-600 mt-1">{{ $quotationVersion->terms }}</p>
+                        <p class="text-sm text-slate-600 mt-1">{{ $quotationVersion->terms }}</p>
                     @endif
-                </div>
+                </x-summary-panel>
             @endif
         </div>
 
         <div class="space-y-6">
-            <div class="bg-white rounded-lg border border-slate-200 p-5 space-y-2">
-                <h3 class="text-sm font-medium text-slate-900 mb-1">Actions</h3>
+            <x-summary-panel title="Actions">
+                <div class="space-y-2">
 
                 @if ($quotationVersion->isEditable())
                     <form method="POST" action="{{ route('quotation-versions.send', $quotationVersion) }}">
                         @csrf
-                        <button type="submit" class="w-full rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
+                        <button type="submit" class="w-full rounded-md bg-brand-700 text-white text-sm font-medium px-4 py-2 hover:bg-brand-800">
                             Send to customer
                         </button>
                     </form>
@@ -182,25 +173,25 @@
                     @else
                         <form method="POST" action="{{ route('quotation-versions.booking.store', $quotationVersion) }}">
                             @csrf
-                            <button type="submit" class="w-full rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
+                            <button type="submit" class="w-full rounded-md bg-brand-700 text-white text-sm font-medium px-4 py-2 hover:bg-brand-800">
                                 Create booking
                             </button>
                         </form>
                     @endif
                 @endif
-            </div>
+                </div>
+            </x-summary-panel>
 
             @if ($quotationVersion->quotation->versions->count() > 1)
-                <div class="bg-white rounded-lg border border-slate-200 p-5">
-                    <h3 class="text-sm font-medium text-slate-900 mb-3">Version history</h3>
+                <x-summary-panel title="Version history">
                     @foreach ($quotationVersion->quotation->versions as $version)
                         <a href="{{ route('quotation-versions.show', $version) }}"
                            class="flex justify-between items-center py-1.5 text-sm {{ $version->id === $quotationVersion->id ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-900' }}">
                             <span>V{{ $version->version_number }}</span>
-                            <span>{{ number_format($version->totalSellPrice(), 2) }}</span>
+                            <span class="tabular-nums">{{ number_format($version->totalSellPrice(), 2) }}</span>
                         </a>
                     @endforeach
-                </div>
+                </x-summary-panel>
             @endif
         </div>
     </div>

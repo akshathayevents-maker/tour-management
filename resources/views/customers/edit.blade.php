@@ -3,52 +3,51 @@
 @section('title', 'Edit customer')
 
 @section('content')
-    <x-page-header title="Edit customer" />
+    <x-page-header title="Edit customer" subtitle="{{ $customer->name }}" />
 
-    <div class="max-w-lg bg-white rounded-lg border border-slate-200 p-6">
-        <form method="POST" action="{{ route('customers.update', $customer) }}" class="space-y-4">
+    <div class="max-w-3xl bg-white rounded-lg border border-slate-200 px-6">
+        <form method="POST" action="{{ route('customers.update', $customer) }}">
             @csrf
             @method('PUT')
-            <div>
-                <label for="name" class="block text-sm font-medium text-slate-700">Name</label>
-                <input id="name" name="name" value="{{ old('name', $customer->name) }}" required autofocus
-                       class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
-            </div>
-            <div>
-                <label for="phone" class="block text-sm font-medium text-slate-700">Phone</label>
-                <input id="phone" name="phone" value="{{ old('phone', $customer->phone) }}" required
-                       class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
-            </div>
-            <div>
-                <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
-                <input id="email" name="email" type="email" value="{{ old('email', $customer->email) }}"
-                       class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
-            </div>
-            <div>
-                <label for="whatsapp" class="block text-sm font-medium text-slate-700">WhatsApp number</label>
-                <input id="whatsapp" name="whatsapp" value="{{ old('whatsapp', $customer->whatsapp) }}"
-                       class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="city" class="block text-sm font-medium text-slate-700">City</label>
+
+            <x-form-section title="Identity">
+                <x-field label="Name" name="name" required>
+                    <input id="name" name="name" value="{{ old('name', $customer->name) }}" required autofocus
+                           class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
+                </x-field>
+                <x-field label="Phone" name="phone" required>
+                    <input id="phone" name="phone" value="{{ old('phone', $customer->phone) }}" required
+                           class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
+                </x-field>
+            </x-form-section>
+
+            <x-form-section title="Additional details">
+                <x-field label="Email" name="email">
+                    <input id="email" name="email" type="email" value="{{ old('email', $customer->email) }}"
+                           class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
+                </x-field>
+                <x-field label="WhatsApp number" name="whatsapp">
+                    <input id="whatsapp" name="whatsapp" value="{{ old('whatsapp', $customer->whatsapp) }}"
+                           class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
+                </x-field>
+                <x-field label="City" name="city">
                     <input id="city" name="city" value="{{ old('city', $customer->city) }}"
-                           class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
-                </div>
-                <div>
-                    <label for="country" class="block text-sm font-medium text-slate-700">Country</label>
+                           class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
+                </x-field>
+                <x-field label="Country" name="country">
                     <input id="country" name="country" value="{{ old('country', $customer->country) }}"
-                           class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
-                </div>
+                           class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
+                </x-field>
+                <x-field label="Notes" name="notes" wide>
+                    <textarea id="notes" name="notes" rows="3"
+                              class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">{{ old('notes', $customer->notes) }}</textarea>
+                </x-field>
+            </x-form-section>
+
+            <div class="flex items-center justify-end gap-2 py-4 border-t border-slate-100">
+                <x-button tag="a" href="{{ route('customers.show', $customer) }}" variant="secondary">Cancel</x-button>
+                <x-button type="submit">Save changes</x-button>
             </div>
-            <div>
-                <label for="notes" class="block text-sm font-medium text-slate-700">Notes</label>
-                <textarea id="notes" name="notes" rows="3"
-                          class="mt-1 block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">{{ old('notes', $customer->notes) }}</textarea>
-            </div>
-            <button type="submit" class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
-                Save changes
-            </button>
         </form>
     </div>
 @endsection

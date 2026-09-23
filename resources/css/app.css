@@ -6,4 +6,61 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Brand — deep navy, used for the sidebar and primary actions */
+    --color-brand-50: #eef2fb;
+    --color-brand-100: #dce3f6;
+    --color-brand-200: #b3c1ea;
+    --color-brand-300: #8a9fdd;
+    --color-brand-400: #4d64bf;
+    --color-brand-500: #2c3e82;
+    --color-brand-600: #1f2d63;
+    --color-brand-700: #182349;
+    --color-brand-800: #121a37;
+    --color-brand-900: #0d1327;
+    --color-brand-950: #080c1a;
+
+    /* Accent — warm terracotta, used sparingly for travel-context highlights
+       (hero motif, featured surfaces) — never for primary actions. */
+    --color-accent-50: #fdf3ef;
+    --color-accent-100: #fbe4da;
+    --color-accent-400: #ee9a7c;
+    --color-accent-500: #e2784f;
+    --color-accent-600: #cc5f38;
+
+    /* App background — warm-tinted neutral instead of flat grey */
+    --color-canvas: #f7f6f3;
+}
+
+@layer base {
+    body {
+        background-color: var(--color-canvas);
+    }
+}
+
+@layer base {
+    /* A global baseline for every text input/select/textarea in the app,
+       so every existing form gets a consistent, polished field style
+       without touching each Blade file's className list one by one.
+       Tailwind utilities on individual elements still win where set
+       explicitly (border-slate-300 etc.), this only raises the floor. */
+    input[type='text'], input[type='email'], input[type='password'],
+    input[type='number'], input[type='date'], input[type='time'],
+    input[type='datetime-local'], input[type='search'], input:not([type]),
+    select, textarea {
+        border-radius: 0.5rem;
+        border-color: var(--color-slate-300);
+        font-size: 0.875rem;
+        line-height: 1.5rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input[type='text']:focus, input[type='email']:focus, input[type='password']:focus,
+    input[type='number']:focus, input[type='date']:focus, input[type='time']:focus,
+    input[type='datetime-local']:focus, input[type='search']:focus, input:not([type]):focus,
+    select:focus, textarea:focus {
+        border-color: var(--color-brand-500);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-500) 15%, transparent);
+        outline: none;
+    }
 }

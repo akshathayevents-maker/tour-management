@@ -37,7 +37,7 @@
                 Remember me
             </label>
             <button type="submit"
-                    class="w-full rounded-md bg-slate-900 text-white text-sm font-medium py-2 hover:bg-slate-700">
+                    class="w-full rounded-md bg-brand-700 text-white text-sm font-medium py-2 hover:bg-brand-800">
                 Log in
             </button>
         </form>
