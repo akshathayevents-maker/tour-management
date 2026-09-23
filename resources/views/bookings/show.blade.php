@@ -250,6 +250,88 @@
                 @endunless
             </div>
 
+            {{-- Supplier costs --}}
+            @php
+                // Show any item that has a supplier, a cost, OR a payment
+                // already recorded against it — an advance can legitimately
+                // be paid before either of those is set (see BookingItem::amountPayable()).
+                $costedItems = $booking->items
+                    ->whereNotNull('supplier_id')
+                    ->merge($booking->items->whereNotNull('cost'))
+                    ->merge($booking->items->filter(fn ($item) => $item->supplierPayments->isNotEmpty()));
+            @endphp
+            @if ($costedItems->isNotEmpty())
+                <div class="bg-white rounded-lg border border-slate-200 p-5">
+                    <h3 class="text-sm font-medium text-slate-900 mb-3">Supplier costs</h3>
+
+                    @foreach ($costedItems->unique('id') as $item)
+                        <div class="py-2.5 border-b border-slate-50 last:border-0 text-sm">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="text-slate-900 font-medium">{{ $item->description }}</span>
+                                    @if ($item->supplier_name_snapshot || $item->supplier)
+                                        <p class="text-xs text-slate-500">{{ $item->supplier_name_snapshot ?? $item->supplier->name }}</p>
+                                    @endif
+                                </div>
+                                <div class="text-right shrink-0">
+                                    @if ($item->cost !== null)
+                                        <p class="text-slate-900 font-medium tabular-nums">{{ number_format($item->cost, 2) }}</p>
+                                        @php $due = $item->amountPayable(); @endphp
+                                        @if ($due > 0)
+                                            <p class="text-xs text-amber-700">
+                                                Paid {{ number_format($item->totalPaidToSupplier(), 2) }} &middot; Due {{ number_format($due, 2) }}
+                                            </p>
+                                        @elseif ($due < 0)
+                                            <p class="text-xs text-blue-700">
+                                                Paid {{ number_format($item->totalPaidToSupplier(), 2) }} &middot; Overpaid by {{ number_format(abs($due), 2) }}
+                                            </p>
+                                        @else
+                                            <p class="text-xs text-green-700">
+                                                Paid {{ number_format($item->totalPaidToSupplier(), 2) }} &middot; Due 0.00
+                                            </p>
+                                        @endif
+                                    @else
+                                        <p class="text-xs text-slate-400">Cost not confirmed yet</p>
+                                        @if ($item->totalPaidToSupplier() > 0)
+                                            <p class="text-xs text-slate-500">Paid {{ number_format($item->totalPaidToSupplier(), 2) }}</p>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            @include('supplier_payments._history', ['item' => $item])
+
+                            @if ($item->amountPayable() === null || $item->amountPayable() > 0)
+                                <details class="relative mt-2">
+                                    <summary class="list-none cursor-pointer text-xs rounded-md border border-slate-300 px-2 py-1 text-slate-600 hover:bg-slate-50 inline-block">
+                                        Record payment
+                                    </summary>
+                                    <form method="POST" action="{{ route('supplier-payments.store', $item) }}"
+                                          class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-slate-200 p-3 z-10 space-y-2">
+                                        @csrf
+                                        <input type="number" step="0.01" min="0.01" name="amount" placeholder="Amount" required
+                                               class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
+                                        <input type="date" name="paid_at" value="{{ now()->toDateString() }}" required
+                                               class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
+                                        <select name="method" class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
+                                            <option value="">Method (optional)</option>
+                                            @foreach (\App\Enums\PaymentMethod::cases() as $method)
+                                                <option value="{{ $method->value }}">{{ $method->label() }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input name="reference" placeholder="Reference (optional)"
+                                               class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
+                                        <button type="submit" class="w-full rounded-md bg-slate-900 text-white text-xs font-medium px-3 py-1.5 hover:bg-slate-700">
+                                            Save payment
+                                        </button>
+                                    </form>
+                                </details>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
             {{-- Activity --}}
             @if ($activities->isNotEmpty())
                 <div class="bg-white rounded-lg border border-slate-200 p-5">

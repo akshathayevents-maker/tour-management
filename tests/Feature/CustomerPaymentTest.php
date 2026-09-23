@@ -339,4 +339,19 @@ class CustomerPaymentTest extends TestCase
 
         $this->actingAs($userA)->get(route('bookings.show', $bookingB))->assertNotFound();
     }
+
+    public function test_payment_cannot_be_voided_twice(): void
+    {
+        $company = Company::factory()->create();
+        $user = $this->companyUser($company);
+        $booking = $this->bookingWithPrice($company, 50000);
+        $this->actingAs($user)->post(route('customer-payments.store', $booking), ['amount' => 20000, 'paid_at' => now()->toDateString(), 'method' => 'cash']);
+        $payment = CustomerPayment::first();
+        $this->actingAs($user)->post(route('customer-payments.void', $payment), ['reason' => 'First void']);
+
+        $this->actingAs($user)->post(route('customer-payments.void', $payment->fresh()), ['reason' => 'Second void'])
+            ->assertStatus(422);
+
+        $this->assertSame('First void', $payment->fresh()->voided_reason);
+    }
 }

@@ -88,7 +88,7 @@ class BookingController extends Controller
         $booking->load([
             'customer', 'trip',
             'acceptedQuotationVersion.lineItems',
-            'items.supplier',
+            'items.supplier', 'items.supplierPayments',
             'checklistItems.doneBy',
             'payments', 'invoices',
         ]);

@@ -32,12 +32,18 @@ class BookingItemController extends Controller
         }
 
         $originalSupplierId = $bookingItem->supplier_id;
+        $originalCost = $bookingItem->cost;
 
         $bookingItem->update($request->validated());
 
         if ($request->integer('supplier_id') !== $originalSupplierId) {
             activity()->performedOn($bookingItem->booking)->causedBy($request->user())
                 ->log("Supplier changed on \"{$bookingItem->description}\".");
+        }
+
+        if ((float) $bookingItem->cost !== (float) $originalCost) {
+            activity()->performedOn($bookingItem->booking)->causedBy($request->user())
+                ->log("Cost on \"{$bookingItem->description}\" changed from ".number_format((float) $originalCost, 2).' to '.number_format((float) $bookingItem->cost, 2).'.');
         }
 
         return redirect()

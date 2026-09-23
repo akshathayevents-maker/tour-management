@@ -25,6 +25,10 @@ class CustomerPaymentController extends Controller
 
     public function void(VoidCustomerPaymentRequest $request, CustomerPayment $customerPayment): RedirectResponse
     {
+        if ($customerPayment->isVoided()) {
+            abort(422, 'This payment has already been voided.');
+        }
+
         $customerPayment->void($request->string('reason')->value());
 
         activity()->performedOn($customerPayment->booking)->causedBy($request->user())

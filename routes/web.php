@@ -20,6 +20,7 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationLineItemController;
 use App\Http\Controllers\QuotationVersionController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 
@@ -110,6 +111,9 @@ Route::middleware('auth')->group(function () {
         Route::post('bookings/{booking}/invoice', [InvoiceController::class, 'store'])->name('invoices.store');
         Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
         Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
+
+        Route::post('booking-items/{bookingItem}/supplier-payments', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
+        Route::post('supplier-payments/{supplierPayment}/void', [SupplierPaymentController::class, 'void'])->name('supplier-payments.void');
 
         Route::get('follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
         Route::post('follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
