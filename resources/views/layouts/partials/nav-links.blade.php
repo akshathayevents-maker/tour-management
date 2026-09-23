@@ -24,6 +24,10 @@
        class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('suppliers.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
         Suppliers
     </a>
+    <a href="{{ route('bookings.index') }}"
+       class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('bookings.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
+        Bookings
+    </a>
     <a href="{{ route('follow-ups.index') }}"
        class="block px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('follow-ups.*') ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-white' }}">
         Follow-ups

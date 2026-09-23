@@ -88,6 +88,43 @@
                     @include('quotation_versions._summary', ['quotation' => $trip->quotation])
                 @endif
             </div>
+
+            {{-- Booking --}}
+            @php $booking = $trip->activeBooking(); @endphp
+            <div class="bg-white rounded-lg border border-slate-200 p-5">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-sm font-medium text-slate-900">Booking</h3>
+                    @if ($booking)
+                        <x-status-badge :color="$booking->status->badgeColor()" :label="$booking->status->label()" />
+                    @endif
+                </div>
+
+                @if (! $booking)
+                    <x-empty-state
+                        title="No booking yet."
+                        description="Create one directly, or from an accepted quotation version." />
+                    <form method="POST" action="{{ route('bookings.store') }}" class="mt-3">
+                        @csrf
+                        <input type="hidden" name="customer_id" value="{{ $trip->customer_id }}">
+                        <input type="hidden" name="trip_id" value="{{ $trip->id }}">
+                        <button type="submit" class="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
+                            Create booking
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('bookings.show', $booking) }}" class="text-sm text-slate-900 font-medium hover:underline">
+                        View booking workspace &rarr;
+                    </a>
+                    <div class="mt-3 space-y-1 text-sm">
+                        @foreach ($booking->readinessRows() as $row)
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">{{ $row['label'] }}</span>
+                                <span class="{{ $row['ok'] ? 'text-green-700' : 'text-amber-700' }}">{{ $row['ok'] ? '✓' : '⚠' }} {{ $row['state'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </div>
 
         <div class="space-y-6">

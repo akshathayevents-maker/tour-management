@@ -172,6 +172,22 @@
                         </button>
                     </form>
                 @endif
+
+                @if ($quotationVersion->status === \App\Enums\QuotationVersionStatus::Accepted)
+                    @if ($existingBooking)
+                        <a href="{{ route('bookings.show', $existingBooking) }}"
+                           class="block w-full text-center rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
+                            View booking
+                        </a>
+                    @else
+                        <form method="POST" action="{{ route('quotation-versions.booking.store', $quotationVersion) }}">
+                            @csrf
+                            <button type="submit" class="w-full rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-700">
+                                Create booking
+                            </button>
+                        </form>
+                    @endif
+                @endif
             </div>
 
             @if ($quotationVersion->quotation->versions->count() > 1)

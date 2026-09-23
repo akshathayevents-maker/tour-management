@@ -65,6 +65,7 @@ class TripController extends Controller
             'customer', 'enquiry',
             'itinerary.days.items',
             'quotation.versions.lineItems',
+            'bookings.items', 'bookings.checklistItems',
         ]);
 
         $followUps = $trip->followUps()->pending()->orderBy('due_at')->get();

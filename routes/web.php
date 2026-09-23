@@ -3,6 +3,9 @@
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\BookingChecklistItemController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BookingItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnquiryController;
@@ -82,6 +85,21 @@ Route::middleware('auth')->group(function () {
         Route::post('quotation-versions/{quotationVersion}/line-items', [QuotationLineItemController::class, 'store'])->name('quotation-line-items.store');
         Route::patch('quotation-line-items/{quotationLineItem}', [QuotationLineItemController::class, 'update'])->name('quotation-line-items.update');
         Route::delete('quotation-line-items/{quotationLineItem}', [QuotationLineItemController::class, 'destroy'])->name('quotation-line-items.destroy');
+
+        Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');
+        Route::get('bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+        Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
+        Route::post('quotation-versions/{quotationVersion}/booking', [BookingController::class, 'storeFromQuotation'])->name('quotation-versions.booking.store');
+        Route::get('bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+        Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+        Route::post('bookings/{booking}/complete', [BookingController::class, 'complete'])->name('bookings.complete');
+
+        Route::post('bookings/{booking}/items', [BookingItemController::class, 'store'])->name('booking-items.store');
+        Route::patch('booking-items/{bookingItem}', [BookingItemController::class, 'update'])->name('booking-items.update');
+        Route::patch('booking-items/{bookingItem}/status', [BookingItemController::class, 'updateStatus'])->name('booking-items.status');
+
+        Route::post('bookings/{booking}/checklist-items', [BookingChecklistItemController::class, 'store'])->name('booking-checklist-items.store');
+        Route::patch('booking-checklist-items/{bookingChecklistItem}/complete', [BookingChecklistItemController::class, 'complete'])->name('booking-checklist-items.complete');
 
         Route::get('follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
         Route::post('follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');

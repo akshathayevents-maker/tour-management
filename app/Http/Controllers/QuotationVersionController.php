@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\QuotationVersion\UpdateQuotationVersionRequest;
+use App\Models\Booking;
 use App\Models\QuotationVersion;
 use App\Services\QuotationVersionService;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,9 @@ class QuotationVersionController extends Controller
 
         $quotationVersion->load('lineItems', 'quotation.trip.customer', 'quotation.versions');
 
-        return view('quotation_versions.show', compact('quotationVersion'));
+        $existingBooking = Booking::where('accepted_quotation_version_id', $quotationVersion->id)->first();
+
+        return view('quotation_versions.show', compact('quotationVersion', 'existingBooking'));
     }
 
     public function update(UpdateQuotationVersionRequest $request, QuotationVersion $quotationVersion): RedirectResponse
