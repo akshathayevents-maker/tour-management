@@ -98,6 +98,19 @@ class BookingController extends Controller
         return view('bookings.show', compact('booking', 'activities'));
     }
 
+    /**
+     * Print-friendly booking confirmation — same authorization as show(),
+     * same financial methods, just a different (chrome-free) view.
+     */
+    public function print(Booking $booking): View
+    {
+        $this->authorize('view', $booking);
+
+        $booking->load(['customer', 'trip', 'company', 'items.supplier', 'payments']);
+
+        return view('bookings.print', compact('booking'));
+    }
+
     public function cancel(CancelBookingRequest $request, Booking $booking): RedirectResponse
     {
         if ($booking->status !== BookingStatus::Confirmed) {

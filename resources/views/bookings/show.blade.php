@@ -24,9 +24,12 @@
                 <p class="mt-1 text-sm text-brand-200">
                     Booking #{{ $booking->id }} &middot;
                     <a href="{{ route('customers.show', $booking->customer) }}" class="text-white hover:underline">{{ $booking->customer->name }}</a>
+                    @if ($booking->customer->phone) &middot; {{ $booking->customer->phone }} @endif
+                    &middot; Created {{ $booking->created_at->format('d M Y') }}
                 </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+                <x-button tag="a" href="{{ route('bookings.print', $booking) }}" target="_blank" size="sm" class="!bg-white/10 !border-white/15 !text-white hover:!bg-white/15">Print</x-button>
                 @if ($booking->status === \App\Enums\BookingStatus::Confirmed)
                     <form method="POST" action="{{ route('bookings.complete', $booking) }}">
                         @csrf
@@ -37,6 +40,7 @@
                             Cancel booking
                         </summary>
                         <form method="POST" action="{{ route('bookings.cancel', $booking) }}"
+                              onsubmit="return confirm('Cancel this booking? This cannot be undone.');"
                               class="absolute right-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-slate-200 p-3 z-10 space-y-2">
                             @csrf
                             <input name="cancellation_reason" placeholder="Reason (optional)"
@@ -50,18 +54,45 @@
             </div>
         </div>
 
-        <div class="relative mt-5 grid grid-cols-3 gap-x-3 sm:gap-x-6 border-t border-white/10 pt-4">
-            <div class="min-w-0">
-                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Total</p>
-                <p class="text-base sm:text-xl font-semibold text-white mt-0.5 tabular-nums truncate">{{ number_format($booking->totalSellPrice(), 2) }}</p>
+        @php
+            // Aggregated purely by summing each item's own existing
+            // calculation methods (BookingItem::totalPaidToSupplier() /
+            // amountPayable()) — no new financial semantics, just a total.
+            $supplierCost = (float) $booking->items->sum('cost');
+            $supplierPaid = (float) $booking->items->sum(fn ($item) => $item->totalPaidToSupplier());
+            $supplierPayable = (float) $booking->items->sum(fn ($item) => max(0, $item->amountPayable() ?? 0));
+        @endphp
+        <div class="relative mt-5 border-t border-white/10 pt-4">
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-300 mb-2">Customer</p>
+            <div class="grid grid-cols-3 gap-x-3 sm:gap-x-6">
+                <div class="min-w-0">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Selling total</p>
+                    <p class="text-base sm:text-xl font-semibold text-white mt-0.5 tabular-nums truncate">{{ number_format($booking->totalSellPrice(), 2) }}</p>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Paid</p>
+                    <p class="text-base sm:text-xl font-semibold text-emerald-400 mt-0.5 tabular-nums truncate">{{ number_format($booking->totalPaid(), 2) }}</p>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Balance due</p>
+                    <p class="text-base sm:text-xl font-semibold mt-0.5 tabular-nums truncate {{ $booking->amountRemaining() > 0 ? 'text-accent-400' : 'text-white' }}">{{ number_format($booking->amountRemaining(), 2) }}</p>
+                </div>
             </div>
-            <div class="min-w-0">
-                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Paid</p>
-                <p class="text-base sm:text-xl font-semibold text-emerald-400 mt-0.5 tabular-nums truncate">{{ number_format($booking->totalPaid(), 2) }}</p>
-            </div>
-            <div class="min-w-0">
-                <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Balance</p>
-                <p class="text-base sm:text-xl font-semibold mt-0.5 tabular-nums truncate {{ $booking->amountRemaining() > 0 ? 'text-accent-400' : 'text-white' }}">{{ number_format($booking->amountRemaining(), 2) }}</p>
+
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-300 mb-2 mt-4">Supplier</p>
+            <div class="grid grid-cols-3 gap-x-3 sm:gap-x-6">
+                <div class="min-w-0">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Total cost</p>
+                    <p class="text-sm sm:text-base font-semibold text-white mt-0.5 tabular-nums truncate">{{ number_format($supplierCost, 2) }}</p>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Paid</p>
+                    <p class="text-sm sm:text-base font-semibold text-emerald-400 mt-0.5 tabular-nums truncate">{{ number_format($supplierPaid, 2) }}</p>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-brand-300">Payable</p>
+                    <p class="text-sm sm:text-base font-semibold mt-0.5 tabular-nums truncate {{ $supplierPayable > 0 ? 'text-amber-300' : 'text-white' }}">{{ number_format($supplierPayable, 2) }}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -82,8 +113,8 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            {{-- Customer payment --}}
-            <x-summary-panel title="Customer payment">
+            {{-- Customer payments --}}
+            <x-summary-panel title="Customer payments">
                 <div class="flex flex-wrap gap-2 mb-4">
                     @if ($booking->amountRemaining() > 0)
                         <details class="relative">
@@ -119,18 +150,9 @@
                         </details>
                     @endif
 
-                    @if ($booking->items->whereNotNull('sell_price')->isNotEmpty())
-                        <form method="POST" action="{{ route('invoices.store', $booking) }}">
-                            @csrf
-                            <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
-                                Create invoice
-                            </button>
-                        </form>
-                    @endif
                 </div>
 
                 @if ($booking->payments->isNotEmpty())
-                    <p class="text-xs font-medium text-slate-400 mb-2">Payment history</p>
                     @foreach ($booking->payments as $payment)
                         <div class="flex items-start justify-between gap-2 py-1.5 border-b border-slate-50 last:border-0 text-sm">
                             <div class="min-w-0">
@@ -153,6 +175,7 @@
                                     <details class="relative">
                                         <summary class="list-none cursor-pointer text-xs text-slate-400 hover:text-red-600">Void</summary>
                                         <form method="POST" action="{{ route('customer-payments.void', $payment) }}"
+                                              onsubmit="return confirm('Void this payment? This cannot be undone — record a new payment to correct it.');"
                                               class="absolute right-0 mt-1 w-56 bg-white rounded-md shadow-lg border border-slate-200 p-3 z-10 space-y-2">
                                             @csrf
                                             <input name="reason" placeholder="Reason" required
@@ -170,15 +193,35 @@
                     <p class="text-sm text-slate-400">No payments recorded yet.</p>
                 @endif
 
+            </x-summary-panel>
+
+            {{-- Invoices --}}
+            <x-summary-panel title="Invoices">
+                @if ($booking->items->whereNotNull('sell_price')->isNotEmpty())
+                    <form method="POST" action="{{ route('invoices.store', $booking) }}" class="mb-3">
+                        @csrf
+                        <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
+                            Create invoice
+                        </button>
+                    </form>
+                @endif
+
                 @if ($booking->invoices->isNotEmpty())
-                    <p class="text-xs font-medium text-slate-400 mt-4 mb-2">Invoices</p>
                     @foreach ($booking->invoices as $invoice)
                         <a href="{{ route('invoices.show', $invoice) }}"
-                           class="flex justify-between items-center py-1.5 text-sm hover:underline">
-                            <span class="{{ $invoice->isCancelled() ? 'text-slate-400 line-through' : 'text-slate-900' }}">{{ $invoice->invoice_number }}</span>
-                            <span class="text-slate-500">{{ number_format($invoice->total, 2) }}</span>
+                           class="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0 text-sm hover:bg-slate-50 -mx-1 px-1 rounded">
+                            <span class="min-w-0">
+                                <span class="{{ $invoice->isCancelled() ? 'text-slate-400 line-through' : 'text-slate-900 font-medium' }}">{{ $invoice->invoice_number }}</span>
+                                <span class="text-xs text-slate-400 ml-1.5">{{ $invoice->issued_at?->format('d M Y') }}</span>
+                                @if ($invoice->isCancelled())
+                                    <x-status-badge color="slate" label="Cancelled" class="ml-1.5" />
+                                @endif
+                            </span>
+                            <span class="text-slate-700 font-medium tabular-nums shrink-0">{{ number_format($invoice->total, 2) }}</span>
                         </a>
                     @endforeach
+                @else
+                    <p class="text-sm text-slate-400">No invoices issued yet.</p>
                 @endif
             </x-summary-panel>
 
@@ -375,7 +418,7 @@
                 <form method="POST" action="{{ route('booking-checklist-items.store', $booking) }}" class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
                     @csrf
                     <input type="text" name="label" placeholder="Add a checklist item…" required
-                           class="flex-1 rounded-md border-slate-300 shadow-sm text-sm">
+                           class="flex-1 min-w-0 rounded-md border-slate-300 shadow-sm text-sm">
                     <x-button type="submit" variant="secondary">Add</x-button>
                 </form>
             </x-summary-panel>

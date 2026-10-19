@@ -8,6 +8,7 @@ use App\Models\Customer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 
 class CustomerController extends Controller
 {
@@ -42,6 +43,9 @@ class CustomerController extends Controller
     {
         $customer = Customer::create($request->validated());
 
+        activity()->performedOn($customer)->causedBy(request()->user())
+            ->log("Customer \"{$customer->name}\" created.");
+
         return redirect()
             ->route('customers.show', $customer)
             ->with('status', "Customer \"{$customer->name}\" created.");
@@ -57,8 +61,9 @@ class CustomerController extends Controller
         ]);
 
         $followUps = $customer->followUps()->pending()->orderBy('due_at')->get();
+        $activities = Activity::forSubject($customer)->with('causer')->latest()->limit(20)->get();
 
-        return view('customers.show', compact('customer', 'followUps'));
+        return view('customers.show', compact('customer', 'followUps', 'activities'));
     }
 
     public function edit(Customer $customer): View

@@ -1,12 +1,26 @@
 @extends('layouts.app')
 
-@php $trip = $quotationVersion->quotation->trip; @endphp
+@php
+    $trip = $quotationVersion->quotation->trip;
+    $acceptedVersion = $quotationVersion->quotation->acceptedVersion();
+    $isViewingOlderVersion = $acceptedVersion && $acceptedVersion->id !== $quotationVersion->id
+        && $quotationVersion->status !== \App\Enums\QuotationVersionStatus::Draft;
+@endphp
 
 @section('title', "Quotation V{$quotationVersion->version_number}")
 
 @section('content')
-    <x-page-header :title="'Quotation V'.$quotationVersion->version_number" subtitle="For {{ $trip->destination }} · {{ $trip->customer->name }}">
+    <x-page-header subtitle="For {{ $trip->destination }} · {{ $trip->customer->name }}">
+        <x-slot:title>
+            <span class="flex items-center gap-2.5 flex-wrap">
+                Quotation V{{ $quotationVersion->version_number }}
+                <x-status-badge :color="$quotationVersion->status->badgeColor()" :label="$quotationVersion->isExpired() ? 'Expired' : $quotationVersion->status->label()" />
+            </span>
+        </x-slot:title>
         <x-slot:actions>
+            @if ($quotationVersion->status !== \App\Enums\QuotationVersionStatus::Draft)
+                <x-button tag="a" href="{{ route('quotation-versions.print', $quotationVersion) }}" target="_blank" variant="secondary">Print</x-button>
+            @endif
             <x-button tag="a" href="{{ route('trips.show', $trip) }}" variant="secondary">Back to trip</x-button>
         </x-slot:actions>
     </x-page-header>
@@ -21,13 +35,32 @@
         </x-alert>
     @endif
 
+    @if ($isViewingOlderVersion)
+        <x-alert type="info">
+            You're viewing <strong>V{{ $quotationVersion->version_number }}</strong> ({{ $quotationVersion->status->label() }}).
+            The currently accepted version is
+            <a href="{{ route('quotation-versions.show', $acceptedVersion) }}" class="underline font-medium">V{{ $acceptedVersion->version_number }}</a>.
+        </x-alert>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
+            <x-summary-panel title="Overview">
+                <dl class="divide-y divide-slate-50">
+                    <x-detail-row label="Customer"><a href="{{ route('customers.show', $trip->customer) }}" class="hover:underline">{{ $trip->customer->name }}</a></x-detail-row>
+                    <x-detail-row label="Trip"><a href="{{ route('trips.show', $trip) }}" class="hover:underline">{{ $trip->destination }}</a></x-detail-row>
+                    <x-detail-row label="Version"><span class="text-slate-500">V{{ $quotationVersion->version_number }} of {{ $quotationVersion->quotation->versions->count() }}</span></x-detail-row>
+                    <x-detail-row label="Status"><x-status-badge :color="$quotationVersion->status->badgeColor()" :label="$quotationVersion->isExpired() ? 'Expired' : $quotationVersion->status->label()" /></x-detail-row>
+                    @if ($quotationVersion->sent_at)
+                        <x-detail-row label="Sent">{{ $quotationVersion->sent_at->format('d M Y') }}</x-detail-row>
+                    @endif
+                    @if ($quotationVersion->valid_until)
+                        <x-detail-row label="Valid until">{{ $quotationVersion->valid_until->format('d M Y') }}</x-detail-row>
+                    @endif
+                </dl>
+            </x-summary-panel>
+
             <x-summary-panel title="Line items">
-                <x-slot:actions>
-                    <x-status-badge :color="$quotationVersion->status->badgeColor()" :label="$quotationVersion->isExpired() ? 'Expired' : $quotationVersion->status->label()" />
-                </x-slot:actions>
-                </div>
 
                 @forelse ($quotationVersion->lineItems as $item)
                     <div class="flex items-start justify-between gap-2 py-2 border-b border-slate-50 last:border-0 text-sm">
@@ -141,15 +174,17 @@
                 @endif
 
                 @if ($quotationVersion->status === \App\Enums\QuotationVersionStatus::Sent)
-                    <form method="POST" action="{{ route('quotation-versions.accept', $quotationVersion) }}">
+                    <form method="POST" action="{{ route('quotation-versions.accept', $quotationVersion) }}"
+                          onsubmit="return confirm('Mark V{{ $quotationVersion->version_number }} as accepted?{{ $acceptedVersion ? ' This will supersede the currently accepted V'.$acceptedVersion->version_number.'.' : '' }}');">
                         @csrf
-                        <button type="submit" class="w-full rounded-md bg-green-600 text-white text-sm font-medium px-4 py-2 hover:bg-green-700">
+                        <button type="submit" class="w-full rounded-md bg-emerald-600 text-white text-sm font-medium px-4 py-2 hover:bg-emerald-700">
                             Mark accepted
                         </button>
                     </form>
-                    <form method="POST" action="{{ route('quotation-versions.reject', $quotationVersion) }}">
+                    <form method="POST" action="{{ route('quotation-versions.reject', $quotationVersion) }}"
+                          onsubmit="return confirm('Mark V{{ $quotationVersion->version_number }} as rejected? This cannot be undone.');">
                         @csrf
-                        <button type="submit" class="w-full rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
+                        <button type="submit" class="w-full rounded-md bg-white border border-red-200 text-red-700 text-sm font-medium px-4 py-2 hover:bg-red-50">
                             Mark rejected
                         </button>
                     </form>
@@ -159,9 +194,12 @@
                     <form method="POST" action="{{ route('quotation-versions.new-version', $quotationVersion) }}">
                         @csrf
                         <button type="submit" class="w-full rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
-                            Create new version
+                            Create a revision
                         </button>
                     </form>
+                    @if ($quotationVersion->status === \App\Enums\QuotationVersionStatus::Accepted)
+                        <p class="text-xs text-slate-400">Creates a new draft copied from this version. If the new draft is accepted, it will supersede V{{ $quotationVersion->version_number }}.</p>
+                    @endif
                 @endif
 
                 @if ($quotationVersion->status === \App\Enums\QuotationVersionStatus::Accepted)
@@ -174,7 +212,7 @@
                         <form method="POST" action="{{ route('quotation-versions.booking.store', $quotationVersion) }}">
                             @csrf
                             <button type="submit" class="w-full rounded-md bg-brand-700 text-white text-sm font-medium px-4 py-2 hover:bg-brand-800">
-                                Create booking
+                                Convert V{{ $quotationVersion->version_number }} to a booking
                             </button>
                         </form>
                     @endif
@@ -186,11 +224,44 @@
                 <x-summary-panel title="Version history">
                     @foreach ($quotationVersion->quotation->versions as $version)
                         <a href="{{ route('quotation-versions.show', $version) }}"
-                           class="flex justify-between items-center py-1.5 text-sm {{ $version->id === $quotationVersion->id ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-900' }}">
-                            <span>V{{ $version->version_number }}</span>
-                            <span class="tabular-nums">{{ number_format($version->totalSellPrice(), 2) }}</span>
+                           class="flex items-center justify-between gap-2 py-2 px-2 -mx-2 rounded-md text-sm min-w-0 {{ $version->id === $quotationVersion->id ? 'bg-brand-50 text-slate-900 font-medium' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}">
+                            <span class="flex items-center gap-1.5 min-w-0 shrink-0">
+                                V{{ $version->version_number }}
+                                @if ($version->id === $quotationVersion->id)
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-brand-700 whitespace-nowrap">Viewing</span>
+                                @endif
+                            </span>
+                            <span class="flex items-center gap-2 min-w-0 justify-end">
+                                <span class="tabular-nums truncate">{{ number_format($version->totalSellPrice(), 2) }}</span>
+                                <x-status-badge :color="$version->status->badgeColor()" :label="$version->isExpired() ? 'Expired' : $version->status->label()" />
+                            </span>
                         </a>
                     @endforeach
+                </x-summary-panel>
+            @endif
+
+            {{-- Activity --}}
+            @if ($activities->isNotEmpty())
+                <x-summary-panel title="Activity">
+                    <div class="relative">
+                        @foreach ($activities as $activity)
+                            <div class="flex gap-3 pb-3 last:pb-0">
+                                <div class="flex flex-col items-center shrink-0">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-brand-400 mt-1.5"></span>
+                                    @if (! $loop->last)<span class="w-px flex-1 bg-slate-100 mt-1"></span>@endif
+                                </div>
+                                <div class="flex-1 min-w-0 text-sm">
+                                    <div class="flex justify-between gap-2">
+                                        <span class="text-slate-600">{{ $activity->description }}</span>
+                                        <span class="text-xs text-slate-400 shrink-0">{{ $activity->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    @if ($activity->causer)
+                                        <span class="text-xs text-slate-400">by {{ $activity->causer->name }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </x-summary-panel>
             @endif
         </div>

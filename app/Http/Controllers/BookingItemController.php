@@ -31,6 +31,10 @@ class BookingItemController extends Controller
             abort(422, 'This booking is '.$bookingItem->booking->status->label().' — services can no longer be edited.');
         }
 
+        if ($bookingItem->status === BookingItemStatus::Cancelled) {
+            abort(422, 'This service is cancelled and can no longer be edited.');
+        }
+
         $originalSupplierId = $bookingItem->supplier_id;
         $originalCost = $bookingItem->cost;
 
@@ -55,6 +59,10 @@ class BookingItemController extends Controller
     {
         if ($bookingItem->booking->isOperationallyLocked()) {
             abort(422, 'This booking is '.$bookingItem->booking->status->label().' — service status can no longer be changed.');
+        }
+
+        if ($bookingItem->status === BookingItemStatus::Cancelled) {
+            abort(422, 'This service is already cancelled and its status can no longer be changed.');
         }
 
         $status = BookingItemStatus::from($request->string('status')->value());

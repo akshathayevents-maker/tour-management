@@ -10,6 +10,7 @@ use App\Services\LeadConversionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 
 class LeadController extends Controller
 {
@@ -59,8 +60,9 @@ class LeadController extends Controller
 
         $lead->load('customer', 'enquiries');
         $followUps = $lead->followUps()->pending()->orderBy('due_at')->get();
+        $activities = Activity::forSubject($lead)->with('causer')->latest()->limit(20)->get();
 
-        return view('leads.show', compact('lead', 'followUps'));
+        return view('leads.show', compact('lead', 'followUps', 'activities'));
     }
 
     public function edit(Lead $lead): View
@@ -72,7 +74,14 @@ class LeadController extends Controller
 
     public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse
     {
+        $originalStatus = $lead->status;
+
         $lead->update($request->validated());
+
+        if ($lead->status === LeadStatus::Lost && $originalStatus !== LeadStatus::Lost) {
+            activity()->performedOn($lead)->causedBy(request()->user())
+                ->log("Lead marked Lost: {$lead->lost_reason}");
+        }
 
         return redirect()
             ->route('leads.show', $lead)

@@ -11,6 +11,7 @@ use App\Models\Trip;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 
 class TripController extends Controller
 {
@@ -52,6 +53,8 @@ class TripController extends Controller
     {
         $trip = Trip::create($request->validated());
 
+        activity()->performedOn($trip)->causedBy(request()->user())->log("Trip to \"{$trip->destination}\" created.");
+
         return redirect()
             ->route('trips.show', $trip)
             ->with('status', "Trip to \"{$trip->destination}\" created.");
@@ -69,8 +72,9 @@ class TripController extends Controller
         ]);
 
         $followUps = $trip->followUps()->pending()->orderBy('due_at')->get();
+        $activities = Activity::forSubject($trip)->with('causer')->latest()->limit(20)->get();
 
-        return view('trips.show', compact('trip', 'followUps'));
+        return view('trips.show', compact('trip', 'followUps', 'activities'));
     }
 
     public function edit(Trip $trip): View
@@ -82,7 +86,14 @@ class TripController extends Controller
 
     public function update(UpdateTripRequest $request, Trip $trip): RedirectResponse
     {
+        $originalStatus = $trip->status;
+
         $trip->update($request->validated());
+
+        if ($trip->status !== $originalStatus) {
+            activity()->performedOn($trip)->causedBy(request()->user())
+                ->log("Trip status changed from {$originalStatus->label()} to {$trip->status->label()}.");
+        }
 
         return redirect()
             ->route('trips.show', $trip)

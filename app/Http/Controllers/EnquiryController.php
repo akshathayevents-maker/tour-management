@@ -10,6 +10,7 @@ use App\Models\Enquiry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 
 class EnquiryController extends Controller
 {
@@ -46,6 +47,9 @@ class EnquiryController extends Controller
     {
         $enquiry = Enquiry::create($request->validated());
 
+        activity()->performedOn($enquiry)->causedBy(request()->user())
+            ->log("Enquiry for \"{$enquiry->destination}\" created.");
+
         return redirect()
             ->route('enquiries.show', $enquiry)
             ->with('status', 'Enquiry created.');
@@ -57,8 +61,9 @@ class EnquiryController extends Controller
 
         $enquiry->load('customer', 'lead');
         $followUps = $enquiry->followUps()->pending()->orderBy('due_at')->get();
+        $activities = Activity::forSubject($enquiry)->with('causer')->latest()->limit(20)->get();
 
-        return view('enquiries.show', compact('enquiry', 'followUps'));
+        return view('enquiries.show', compact('enquiry', 'followUps', 'activities'));
     }
 
     public function edit(Enquiry $enquiry): View
@@ -70,7 +75,14 @@ class EnquiryController extends Controller
 
     public function update(UpdateEnquiryRequest $request, Enquiry $enquiry): RedirectResponse
     {
+        $originalStatus = $enquiry->status;
+
         $enquiry->update($request->validated());
+
+        if ($enquiry->status !== $originalStatus) {
+            activity()->performedOn($enquiry)->causedBy(request()->user())
+                ->log("Enquiry status changed from {$originalStatus->label()} to {$enquiry->status->label()}.");
+        }
 
         return redirect()
             ->route('enquiries.show', $enquiry)

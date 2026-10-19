@@ -24,6 +24,9 @@ class QuotationController extends Controller
             return $versions->createFirstVersion($quotation);
         });
 
+        activity()->performedOn($trip)->causedBy(request()->user())->log('Quotation started.');
+        activity()->performedOn($version)->causedBy(request()->user())->log("Quotation V{$version->version_number} created.");
+
         return redirect()
             ->route('quotation-versions.show', $version)
             ->with('status', 'Quotation started. Add line items below.');

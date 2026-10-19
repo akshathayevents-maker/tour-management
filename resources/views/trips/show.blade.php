@@ -43,16 +43,34 @@
         <div class="lg:col-span-2 space-y-6">
             {{-- Itinerary --}}
             <x-summary-panel title="Itinerary">
+                @if ($trip->itinerary)
+                    <x-slot:actions>
+                        <a href="{{ route('trips.itinerary.print', $trip) }}" target="_blank" class="text-xs font-medium text-brand-700 hover:text-brand-800">Print</a>
+                    </x-slot:actions>
+                @endif
                 @if (! $trip->itinerary)
                     <x-empty-state
                         title="No itinerary yet."
-                        description="Itinerary is optional — add one if you want a day-by-day plan."
-                        action-label="Create itinerary" />
+                        description="Itinerary is optional — add one if you want a day-by-day plan." />
                     <form method="POST" action="{{ route('trips.itinerary.store', $trip) }}" class="mt-3">
                         @csrf
                         <x-button type="submit">Create itinerary</x-button>
                     </form>
+                @elseif ($trip->itinerary->days->isEmpty())
+                    <x-empty-state
+                        title="No days added yet."
+                        description="Build the day-by-day plan by adding the first day below." />
+                    <form method="POST" action="{{ route('itinerary-days.store', $trip->itinerary) }}" class="mt-3">
+                        @csrf
+                        <input type="hidden" name="day_number" value="1">
+                        <x-button type="submit">+ Add day 1</x-button>
+                    </form>
                 @else
+                    <p class="text-xs text-slate-400 -mt-1 mb-1">
+                        {{ $trip->itinerary->days->count() }} {{ Str::plural('day', $trip->itinerary->days->count()) }} planned
+                        &middot; {{ $trip->itinerary->days->sum(fn ($day) => $day->items->count()) }} {{ Str::plural('activity', $trip->itinerary->days->sum(fn ($day) => $day->items->count())) }}
+                    </p>
+
                     @foreach ($trip->itinerary->days as $day)
                         @include('itineraries._day', ['day' => $day])
                     @endforeach
@@ -112,6 +130,11 @@
                             </div>
                         @endforeach
                     </div>
+                    @if ($trip->bookings->count() > 1)
+                        <p class="text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100">
+                            This trip has {{ $trip->bookings->count() }} bookings in total (showing the most relevant one).
+                        </p>
+                    @endif
                 @endif
             </x-summary-panel>
         </div>
@@ -125,6 +148,31 @@
                     <p class="text-sm text-slate-400 mt-3">No pending follow-ups.</p>
                 @endforelse
             </x-summary-panel>
+
+            {{-- Activity --}}
+            @if ($activities->isNotEmpty())
+                <x-summary-panel title="Activity">
+                    <div class="relative">
+                        @foreach ($activities as $activity)
+                            <div class="flex gap-3 pb-3 last:pb-0">
+                                <div class="flex flex-col items-center shrink-0">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-brand-400 mt-1.5"></span>
+                                    @if (! $loop->last)<span class="w-px flex-1 bg-slate-100 mt-1"></span>@endif
+                                </div>
+                                <div class="flex-1 min-w-0 text-sm">
+                                    <div class="flex justify-between gap-2">
+                                        <span class="text-slate-600">{{ $activity->description }}</span>
+                                        <span class="text-xs text-slate-400 shrink-0">{{ $activity->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    @if ($activity->causer)
+                                        <span class="text-xs text-slate-400">by {{ $activity->causer->name }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-summary-panel>
+            @endif
         </div>
     </div>
 @endsection

@@ -40,6 +40,22 @@ class InvoiceController extends Controller
         return view('invoices.show', compact('invoice'));
     }
 
+    /**
+     * Print-friendly customer-facing invoice — same authorization as
+     * show(), chrome-free view. Cancelled invoices remain printable
+     * (matching show(), which has no lifecycle gate either); the status
+     * and cancellation reason are simply rendered so the printed copy
+     * isn't misleading.
+     */
+    public function print(Invoice $invoice): View
+    {
+        $this->authorize('view', $invoice->booking);
+
+        $invoice->load('lineItems', 'booking.trip', 'booking.company');
+
+        return view('invoices.print', compact('invoice'));
+    }
+
     public function cancel(CancelInvoiceRequest $request, Invoice $invoice): RedirectResponse
     {
         if ($invoice->isCancelled()) {

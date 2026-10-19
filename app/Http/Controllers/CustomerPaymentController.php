@@ -47,4 +47,20 @@ class CustomerPaymentController extends Controller
 
         return view('customer_payments.receipt', compact('customerPayment'));
     }
+
+    /**
+     * Print-friendly customer-facing receipt — same authorization as
+     * receipt(), same fields, chrome-free view. A voided payment remains
+     * printable (matching receipt(), which has no lifecycle gate either);
+     * the voided banner is simply rendered so the printed copy isn't
+     * misleading.
+     */
+    public function print(CustomerPayment $customerPayment): View
+    {
+        $this->authorize('view', $customerPayment->booking);
+
+        $customerPayment->load('booking.customer', 'booking.trip', 'booking.company');
+
+        return view('customer_payments.print', compact('customerPayment'));
+    }
 }

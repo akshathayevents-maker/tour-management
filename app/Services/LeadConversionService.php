@@ -31,6 +31,9 @@ class LeadConversionService
                 'phone' => $lead->phone,
             ]);
 
+            activity()->performedOn($customer)->causedBy(request()->user())
+                ->log("Customer \"{$customer->name}\" created from Lead conversion.");
+
             $lead->forceFill([
                 'customer_id' => $customer->id,
                 'converted_at' => now(),
@@ -41,7 +44,7 @@ class LeadConversionService
             // lead already captured one, carry it straight over so the user
             // doesn't retype it.
             if (filled($lead->destination)) {
-                Enquiry::create([
+                $enquiry = Enquiry::create([
                     'customer_id' => $customer->id,
                     'lead_id' => $lead->id,
                     'destination' => $lead->destination,
@@ -50,6 +53,9 @@ class LeadConversionService
                     'budget' => $lead->budget,
                     'notes' => $lead->notes,
                 ]);
+
+                activity()->performedOn($enquiry)->causedBy(request()->user())
+                    ->log("Enquiry for \"{$enquiry->destination}\" created from Lead conversion.");
             }
 
             return $customer;

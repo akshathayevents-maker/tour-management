@@ -21,6 +21,7 @@ class UpdateLeadRequest extends FormRequest
             'phone' => ['required', 'string', 'max:30'],
             'source' => ['required', new Enum(LeadSource::class)],
             'status' => ['required', new Enum(LeadStatus::class)],
+            'lost_reason' => ['nullable', 'string', 'max:2000', 'required_if:status,'.LeadStatus::Lost->value],
             'destination' => ['nullable', 'string', 'max:255'],
             'travel_month' => ['nullable', 'date'],
             'travellers_count' => ['nullable', 'integer', 'min:1', 'max:100'],

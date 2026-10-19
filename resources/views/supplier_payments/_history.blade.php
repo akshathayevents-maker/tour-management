@@ -17,6 +17,7 @@
                         <details class="relative">
                             <summary class="list-none cursor-pointer text-slate-400 hover:text-red-600">Void</summary>
                             <form method="POST" action="{{ route('supplier-payments.void', $payment) }}"
+                                  onsubmit="return confirm('Void this supplier payment? This cannot be undone — record a new payment to correct it.');"
                                   class="absolute right-0 mt-1 w-56 bg-white rounded-md shadow-lg border border-slate-200 p-3 z-10 space-y-2">
                                 @csrf
                                 <input name="reason" placeholder="Reason" required

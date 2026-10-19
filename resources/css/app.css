@@ -97,6 +97,122 @@
     }
 }
 
+@layer components {
+    /* Dashboard-only premium dark theme. Scoped entirely under `.dash`
+       so it cannot leak into any other page — every other view keeps
+       the existing light canvas/card system untouched. */
+    .dash {
+        --dash-bg: #070b14;
+        --dash-surface: #0d1422;
+        --dash-surface-2: #111b2a;
+        --dash-border: rgba(148, 163, 184, 0.08);
+        --dash-border-strong: rgba(148, 163, 184, 0.18);
+        --dash-text: #f8fafc;
+        --dash-text-2: #94a3b8;
+        --dash-text-3: #64748b;
+
+        /* Semantic accent system — one hue per domain, used sparingly
+           (icon chips, chart strokes, status dots, borders) rather than
+           as card backgrounds, so the UI stays dark with accent *signal*
+           instead of becoming a wall of colored boxes. */
+        --dash-primary: #38bdf8;   /* leads — cyan/blue */
+        --dash-leads: #22d3ee;
+        --dash-enquiries: #a78bfa; /* enquiries — violet */
+        --dash-accent: #a78bfa;
+        --dash-success: #10b981;  /* payments — emerald */
+        --dash-payments: #10b981;
+        --dash-warning: #f59e0b;  /* bookings — amber */
+        --dash-bookings: #fb923c;
+        --dash-supplier: #fbbf24; /* supplier — gold */
+        --dash-danger: #ef4444;   /* overdue/alert — coral red */
+        --dash-overdue: #fb7185;
+        --dash-insight: #ec4899;  /* activity/insights — pink, sparing use */
+
+        /* No border/shadow here on purpose — this is a background layer
+           the sections sit on, not a card wrapping other cards.
+           Negative margins cancel out <main>'s own p-4/sm:p-6 padding
+           (shared across every page) so the dark surface fills the full
+           main-content area edge to edge instead of floating as a
+           narrow, white-framed card. max-width/margin-auto were removed
+           — they were centering and shrinking the dashboard on wide
+           viewports, which is exactly the "white canvas around a small
+           dark card" bug this fixes. */
+        background: var(--dash-bg);
+        color: var(--dash-text);
+        width: auto;
+        min-height: calc(100vh - 3.5rem);
+        margin: -1rem;
+        padding: 1.25rem 1rem;
+    }
+    @media (min-width: 640px) {
+        .dash { margin: -1.5rem; padding: 1.75rem 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+        .dash { padding: 1.75rem 2rem; }
+    }
+
+    .dash-card {
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: 14px;
+        transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .dash-card:hover {
+        border-color: var(--dash-border-strong);
+        box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.45);
+    }
+    .dash-row {
+        transition: background-color .12s ease;
+    }
+    .dash-row:hover {
+        background: var(--dash-surface-2);
+    }
+
+    /* Dark form controls — scoped under .dash so other pages' .form-input
+       / .form-select (light theme) are untouched. Used on the dashboard
+       and on pages migrated into this same design system (e.g. New
+       Booking). */
+    .dash-field {
+        display: block;
+        width: 100%;
+        border-radius: 10px;
+        background: #0b1220;
+        border: 1.5px solid #263247;
+        color: var(--dash-text);
+        font-size: 0.9375rem;
+        padding: 0.75rem 0.875rem;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .dash-field::placeholder {
+        color: var(--dash-text-3);
+    }
+    .dash-field:hover {
+        border-color: rgba(148, 163, 184, 0.3);
+    }
+    .dash-field:focus {
+        outline: none;
+        border-color: var(--dash-leads);
+        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+    }
+    .dash-label {
+        display: block;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--dash-text-2);
+        margin-bottom: 0.375rem;
+    }
+    .dash-help {
+        margin-top: 0.375rem;
+        font-size: 0.75rem;
+        color: var(--dash-text-3);
+    }
+    .dash-error {
+        margin-top: 0.375rem;
+        font-size: 0.75rem;
+        color: var(--dash-overdue);
+    }
+}
+
 @layer base {
     /* A global baseline for every text input/select/textarea in the app,
        so every existing form gets a consistent, polished field style

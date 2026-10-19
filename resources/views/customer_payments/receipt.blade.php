@@ -5,6 +5,10 @@
 @section('content')
     <x-page-header title="Payment receipt" subtitle="{{ $customerPayment->booking->trip->destination }} · {{ $customerPayment->booking->customer->name }}">
         <x-slot:actions>
+            <a href="{{ route('customer-payments.print', $customerPayment) }}" target="_blank"
+               class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
+                Print
+            </a>
             <a href="{{ route('bookings.show', $customerPayment->booking) }}"
                class="rounded-md bg-white border border-slate-300 text-slate-700 text-sm font-medium px-4 py-2 hover:bg-slate-50">
                 Back to booking

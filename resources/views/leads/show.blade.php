@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                @if (! $lead->isConverted())
+                @if (! $lead->isConverted() && $lead->status !== \App\Enums\LeadStatus::Lost)
                     <form method="POST" action="{{ route('leads.convert', $lead) }}"
                           onsubmit="return confirm('Convert this lead to a customer?');">
                         @csrf
@@ -33,6 +33,31 @@
                             Convert to customer
                         </button>
                     </form>
+                    <details class="relative">
+                        <summary class="list-none cursor-pointer rounded-md bg-white/10 border border-white/15 text-red-200 text-[13px] font-medium px-3.5 py-2 hover:bg-red-500/20 hover:text-white">
+                            Mark as lost
+                        </summary>
+                        <form method="POST" action="{{ route('leads.update', $lead) }}"
+                              class="absolute right-0 mt-1 w-72 bg-white rounded-md shadow-lg border border-slate-200 p-3 z-10 space-y-2">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="name" value="{{ $lead->name }}">
+                            <input type="hidden" name="phone" value="{{ $lead->phone }}">
+                            <input type="hidden" name="source" value="{{ $lead->source->value }}">
+                            <input type="hidden" name="status" value="{{ \App\Enums\LeadStatus::Lost->value }}">
+                            <input type="hidden" name="destination" value="{{ $lead->destination }}">
+                            <input type="hidden" name="travel_month" value="{{ $lead->travel_month?->format('Y-m-d') }}">
+                            <input type="hidden" name="travellers_count" value="{{ $lead->travellers_count }}">
+                            <input type="hidden" name="budget" value="{{ $lead->budget }}">
+                            <input type="hidden" name="notes" value="{{ $lead->notes }}">
+                            <label class="block text-xs text-slate-500">Reason <span class="text-red-500">*</span></label>
+                            <textarea name="lost_reason" rows="2" required
+                                      class="block w-full rounded-md border-slate-300 shadow-sm text-sm"></textarea>
+                            <button type="submit" class="w-full rounded-md bg-red-600 text-white text-xs font-medium px-3 py-1.5 hover:bg-red-700">
+                                Confirm lost
+                            </button>
+                        </form>
+                    </details>
                 @endif
                 <x-button tag="a" href="{{ route('leads.edit', $lead) }}" size="sm" class="!bg-white/10 !border-white/15 !text-white hover:!bg-white/15">Edit</x-button>
             </div>
@@ -70,6 +95,12 @@
                 @if ($lead->notes)
                     <p class="mt-3 text-sm text-slate-600 border-t border-slate-100 pt-3">{{ $lead->notes }}</p>
                 @endif
+                @if ($lead->status === \App\Enums\LeadStatus::Lost && $lead->lost_reason)
+                    <div class="mt-3 border-t border-slate-100 pt-3">
+                        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Lost reason</p>
+                        <p class="mt-1 text-sm text-slate-600">{{ $lead->lost_reason }}</p>
+                    </div>
+                @endif
             </x-summary-panel>
         </div>
 
@@ -82,6 +113,29 @@
                     <p class="text-sm text-slate-400 mt-3">No pending follow-ups.</p>
                 @endforelse
             </x-summary-panel>
+
+            {{-- Activity --}}
+            @if ($activities->isNotEmpty())
+                <x-summary-panel title="Activity">
+                    <div class="relative">
+                        @foreach ($activities as $activity)
+                            <div class="flex gap-3 pb-3 last:pb-0">
+                                <div class="flex flex-col items-center shrink-0">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-brand-400 mt-1.5"></span>
+                                    @if (! $loop->last)<span class="w-px flex-1 bg-slate-100 mt-1"></span>@endif
+                                </div>
+                                <div class="flex-1 min-w-0 text-sm">
+                                    <div class="flex justify-between gap-2">
+                                        <span class="text-slate-600">{{ $activity->description }}</span>
+                                        <span class="text-xs text-slate-400 shrink-0">{{ $activity->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <span class="text-xs text-slate-400">by {{ $activity->causer->name ?? 'System' }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-summary-panel>
+            @endif
         </div>
     </div>
 @endsection

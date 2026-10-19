@@ -53,6 +53,7 @@
                 @endforeach
             @endif
 
+            @if ($item->status !== \App\Enums\BookingItemStatus::Cancelled)
             <details class="relative">
                 <summary class="list-none cursor-pointer text-xs text-slate-500 hover:text-slate-900 px-2 py-1">Edit</summary>
                 <form method="POST" action="{{ route('booking-items.update', $item) }}"
@@ -86,6 +87,9 @@
                     </button>
                 </form>
             </details>
+            @else
+                <span class="text-xs text-slate-400 px-2 py-1">Cancelled services can't be edited</span>
+            @endif
         </div>
     @endunless
 </div>

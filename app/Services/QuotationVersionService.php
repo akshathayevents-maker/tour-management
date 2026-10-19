@@ -83,7 +83,18 @@ class QuotationVersionService
         ]);
     }
 
-    public function accept(QuotationVersion $version): void
+    /**
+     * Accept a sent version. If another version on this quotation is
+     * currently Accepted (a revision scenario — see createNewVersion()),
+     * that version is atomically moved to Superseded rather than blocking
+     * the new acceptance, preserving the "at most one Accepted version"
+     * invariant without ever leaving two versions Accepted at once.
+     *
+     * Returns the version that was just superseded, if any, so callers
+     * (e.g. activity logging) can reference it — null when there was no
+     * prior Accepted version to replace.
+     */
+    public function accept(QuotationVersion $version): ?QuotationVersion
     {
         if ($version->status !== QuotationVersionStatus::Sent) {
             throw new InvalidArgumentException('Only a sent version can be accepted.');
@@ -93,11 +104,25 @@ class QuotationVersionService
             throw new InvalidArgumentException('This version has expired and can no longer be accepted. Create a new version instead.');
         }
 
-        if ($version->quotation->acceptedVersion()) {
-            throw new InvalidArgumentException('This quotation already has an accepted version.');
-        }
+        return DB::transaction(function () use ($version) {
+            // Row-locked read-then-write, mirroring the same pattern
+            // InvoiceService uses for its numbering race: closes the gap
+            // where two concurrent accept() calls could otherwise both
+            // observe "no accepted version yet" under READ COMMITTED.
+            $previousAccepted = QuotationVersion::query()
+                ->where('quotation_id', $version->quotation_id)
+                ->where('status', QuotationVersionStatus::Accepted)
+                ->lockForUpdate()
+                ->first();
 
-        $version->update(['status' => QuotationVersionStatus::Accepted]);
+            if ($previousAccepted && $previousAccepted->id !== $version->id) {
+                $previousAccepted->update(['status' => QuotationVersionStatus::Superseded]);
+            }
+
+            $version->update(['status' => QuotationVersionStatus::Accepted]);
+
+            return $previousAccepted;
+        });
     }
 
     public function reject(QuotationVersion $version): void

@@ -5,8 +5,8 @@
     <input type="hidden" name="subject_id" value="{{ $subjectId }}">
     <div class="flex gap-2">
         <input type="datetime-local" name="due_at" required
-               class="flex-1 rounded-md border-slate-300 shadow-sm text-sm">
-        <button type="submit" class="rounded-md bg-brand-700 text-white text-sm font-medium px-3 py-1.5 hover:bg-brand-800">
+               class="flex-1 min-w-0 rounded-md border-slate-300 shadow-sm text-sm">
+        <button type="submit" class="shrink-0 rounded-md bg-brand-700 text-white text-sm font-medium px-3 py-1.5 hover:bg-brand-800">
             Schedule
         </button>
     </div>

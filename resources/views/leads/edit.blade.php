@@ -33,6 +33,10 @@
                         @endforeach
                     </select>
                 </x-field>
+                <x-field label="Lost reason" name="lost_reason" wide hint="Required when status is set to Lost.">
+                    <textarea id="lost_reason" name="lost_reason" rows="2"
+                              class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">{{ old('lost_reason', $lead->lost_reason) }}</textarea>
+                </x-field>
             </x-form-section>
 
             <x-form-section title="Travel">

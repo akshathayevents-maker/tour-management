@@ -16,6 +16,7 @@ use App\Http\Controllers\ItineraryController;
 use App\Http\Controllers\ItineraryDayController;
 use App\Http\Controllers\ItineraryItemController;
 use App\Http\Controllers\LeadController;
+use App\Http\Controllers\MoneyController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationLineItemController;
 use App\Http\Controllers\QuotationVersionController;
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::get('money', MoneyController::class)->name('money');
 
     // Platform-level: super admin only (also hard-enforced by CompanyPolicy).
     Route::middleware('role:super_admin')->prefix('admin')->name('admin.')->group(function () {
@@ -63,6 +65,7 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('trips', TripController::class)->except(['destroy']);
         Route::post('trips/{trip}/itinerary', [ItineraryController::class, 'store'])->name('trips.itinerary.store');
+        Route::get('trips/{trip}/itinerary/print', [ItineraryController::class, 'print'])->name('trips.itinerary.print');
         Route::patch('itineraries/{itinerary}', [ItineraryController::class, 'update'])->name('itineraries.update');
 
         Route::post('itineraries/{itinerary}/days', [ItineraryDayController::class, 'store'])->name('itinerary-days.store');
@@ -79,6 +82,7 @@ Route::middleware('auth')->group(function () {
         Route::post('trips/{trip}/quotation', [QuotationController::class, 'store'])->name('trips.quotation.store');
 
         Route::get('quotation-versions/{quotationVersion}', [QuotationVersionController::class, 'show'])->name('quotation-versions.show');
+        Route::get('quotation-versions/{quotationVersion}/print', [QuotationVersionController::class, 'print'])->name('quotation-versions.print');
         Route::patch('quotation-versions/{quotationVersion}', [QuotationVersionController::class, 'update'])->name('quotation-versions.update');
         Route::post('quotation-versions/{quotationVersion}/send', [QuotationVersionController::class, 'send'])->name('quotation-versions.send');
         Route::post('quotation-versions/{quotationVersion}/accept', [QuotationVersionController::class, 'accept'])->name('quotation-versions.accept');
@@ -94,6 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
         Route::post('quotation-versions/{quotationVersion}/booking', [BookingController::class, 'storeFromQuotation'])->name('quotation-versions.booking.store');
         Route::get('bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+        Route::get('bookings/{booking}/print', [BookingController::class, 'print'])->name('bookings.print');
         Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
         Route::post('bookings/{booking}/complete', [BookingController::class, 'complete'])->name('bookings.complete');
 
@@ -107,9 +112,11 @@ Route::middleware('auth')->group(function () {
         Route::post('bookings/{booking}/payments', [CustomerPaymentController::class, 'store'])->name('customer-payments.store');
         Route::post('customer-payments/{customerPayment}/void', [CustomerPaymentController::class, 'void'])->name('customer-payments.void');
         Route::get('customer-payments/{customerPayment}/receipt', [CustomerPaymentController::class, 'receipt'])->name('customer-payments.receipt');
+        Route::get('customer-payments/{customerPayment}/print', [CustomerPaymentController::class, 'print'])->name('customer-payments.print');
 
         Route::post('bookings/{booking}/invoice', [InvoiceController::class, 'store'])->name('invoices.store');
         Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
         Route::post('invoices/{invoice}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
 
         Route::post('booking-items/{bookingItem}/supplier-payments', [SupplierPaymentController::class, 'store'])->name('supplier-payments.store');

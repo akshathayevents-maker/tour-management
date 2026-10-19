@@ -290,6 +290,11 @@ class QuotationVersioningTest extends TestCase
 
     public function test_only_one_accepted_version_per_quotation(): void
     {
+        // Updated for the revision-after-acceptance milestone (approved
+        // Option A): accepting a revision no longer rejects the request —
+        // it supersedes the previous Accepted version instead. The
+        // invariant this test protects (never two simultaneously Accepted
+        // versions) still holds; only the mechanism changed.
         $company = Company::factory()->create();
         $user = $this->companyUser($company);
         $trip = Trip::factory()->create(['company_id' => $company->id]);
@@ -302,9 +307,10 @@ class QuotationVersioningTest extends TestCase
         $this->actingAs($user)->post(route('quotation-versions.send', $v2));
 
         $this->actingAs($user)->post(route('quotation-versions.accept', $v2->fresh()))
-            ->assertSessionHasErrors('status');
+            ->assertSessionDoesntHaveErrors();
 
-        $this->assertTrue($v2->fresh()->status === \App\Enums\QuotationVersionStatus::Sent);
+        $this->assertTrue($v2->fresh()->status === \App\Enums\QuotationVersionStatus::Accepted);
+        $this->assertTrue($v1->fresh()->status === \App\Enums\QuotationVersionStatus::Superseded);
         $this->assertSame(1, $v1->quotation->versions()->where('status', 'accepted')->count());
     }
 

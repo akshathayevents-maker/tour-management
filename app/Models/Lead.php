@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'phone', 'source', 'destination', 'travel_month', 'travellers_count', 'budget', 'notes', 'status'])]
+#[Fillable(['name', 'phone', 'source', 'destination', 'travel_month', 'travellers_count', 'budget', 'notes', 'status', 'lost_reason'])]
 class Lead extends Model
 {
     use BelongsToCompany, HasFactory, SoftDeletes;

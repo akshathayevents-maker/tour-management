@@ -27,6 +27,20 @@ class BookingService
                 'accepted_quotation_version_id' => $version->id,
             ]);
 
+            // One-time snapshot copy, not a live link: each quotation line
+            // item becomes its own independent BookingItem row belonging
+            // only to this booking. Mirrors QuotationLineItem's own
+            // ordering (sort_order, already applied by the lineItems
+            // relation) so the booking's item order matches the quote.
+            foreach ($version->lineItems as $lineItem) {
+                $booking->items()->create([
+                    'description' => $lineItem->description,
+                    'category' => $lineItem->category,
+                    'sell_price' => $lineItem->sell_price,
+                    'cost' => $lineItem->cost,
+                ]);
+            }
+
             $this->checklist->seedDefaults($booking);
 
             return $booking;

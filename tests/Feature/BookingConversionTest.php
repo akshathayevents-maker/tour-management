@@ -77,37 +77,47 @@ class BookingConversionTest extends TestCase
         $this->assertSame(0, Booking::count());
     }
 
-    public function test_quotation_lines_can_be_selectively_converted(): void
+    public function test_quotation_lines_are_automatically_converted_to_booking_items(): void
     {
+        // Updated for the line-item carry-over milestone: conversion now
+        // auto-copies each quotation line item into a BookingItem, so the
+        // "Hotel" line is already present without a manual add.
         $company = Company::factory()->create();
         $user = $this->companyUser($company);
         $version = $this->acceptedVersionWithLine($user, $company, 'Hotel', 30000);
         $this->actingAs($user)->post(route('quotation-versions.booking.store', $version));
         $booking = Booking::first();
 
-        $this->actingAs($user)->post(route('booking-items.store', $booking), [
-            'description' => 'Hotel',
-            'sell_price' => 30000,
-        ]);
-
         $this->assertSame(1, $booking->fresh()->items->count());
+        $this->assertSame('Hotel', $booking->fresh()->items->first()->description);
     }
 
-    public function test_quotation_line_can_be_skipped(): void
+    public function test_staff_can_still_add_further_items_beyond_the_converted_lines(): void
     {
+        // Updated for the line-item carry-over milestone: the auto-copied
+        // line item does not prevent staff from adding additional
+        // services manually — this proves the booking-items form still
+        // works normally alongside the new auto-copy behavior.
         $company = Company::factory()->create();
         $user = $this->companyUser($company);
         $version = $this->acceptedVersionWithLine($user, $company);
         $this->actingAs($user)->post(route('quotation-versions.booking.store', $version));
         $booking = Booking::first();
 
-        // Simply never converting the line — booking remains valid with
-        // zero items, nothing forces a 1:1 mapping.
-        $this->assertSame(0, $booking->fresh()->items->count());
+        $this->actingAs($user)->post(route('booking-items.store', $booking), [
+            'description' => 'Extra Excursion',
+            'sell_price' => 5000,
+        ]);
+
+        $this->assertSame(2, $booking->fresh()->items->count());
     }
 
-    public function test_broad_quotation_line_can_be_replaced_by_multiple_booking_items(): void
+    public function test_broad_quotation_line_plus_additional_booking_items(): void
     {
+        // Updated for the line-item carry-over milestone: the broad quote
+        // line is auto-copied (1 item), then staff adds 3 more specific
+        // items alongside it — 4 total. There is no delete/replace action
+        // on BookingItem, so "replacement" now means adding alongside.
         $company = Company::factory()->create();
         $user = $this->companyUser($company);
         $version = $this->acceptedVersionWithLine($user, $company, 'Complete Goa Package', 50000);
@@ -118,7 +128,7 @@ class BookingConversionTest extends TestCase
         $this->actingAs($user)->post(route('booking-items.store', $booking), ['description' => 'Transport', 'sell_price' => 10000]);
         $this->actingAs($user)->post(route('booking-items.store', $booking), ['description' => 'Activity', 'sell_price' => 8000]);
 
-        $this->assertSame(3, $booking->fresh()->items->count());
+        $this->assertSame(4, $booking->fresh()->items->count());
     }
 
     public function test_accepted_quotation_remains_unchanged_after_booking_created(): void

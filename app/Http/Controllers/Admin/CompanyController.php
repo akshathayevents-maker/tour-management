@@ -33,6 +33,9 @@ class CompanyController extends Controller
     {
         $company = Company::create($request->validated());
 
+        activity()->performedOn($company)->causedBy(request()->user())
+            ->log("Company \"{$company->name}\" created.");
+
         return redirect()
             ->route('admin.companies.index')
             ->with('status', "Company \"{$company->name}\" created.");
@@ -59,6 +62,10 @@ class CompanyController extends Controller
         $this->authorize('update', $company);
 
         $company->update(['is_active' => ! $company->is_active]);
+
+        $event = $company->is_active ? 'activated' : 'deactivated';
+        activity()->performedOn($company)->causedBy(request()->user())
+            ->log("Company \"{$company->name}\" {$event}.");
 
         return back()->with('status', $company->is_active ? 'Company activated.' : 'Company deactivated.');
     }

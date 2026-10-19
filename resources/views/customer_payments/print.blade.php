@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Receipt · {{ $customerPayment->booking->trip->destination }} · {{ config('app.name') }}</title>
+    @vite(['resources/css/app.css'])
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff !important; }
+            .print-page { box-shadow: none !important; margin: 0 !important; border: none !important; }
+        }
+        @page {
+            size: A4;
+            margin: 16mm 14mm;
+        }
+        body {
+            background: #f1f0ec;
+        }
+        .print-page {
+            max-width: 210mm;
+            margin: 24px auto;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="text-slate-900">
+    @php $booking = $customerPayment->booking; $company = $booking->company; @endphp
+
+    <div class="no-print sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+        <a href="{{ route('customer-payments.receipt', $customerPayment) }}" class="text-sm text-slate-500 hover:text-slate-900">&larr; Back to receipt</a>
+        <button type="button" onclick="window.print()" class="rounded-md bg-brand-700 text-white text-sm font-semibold px-4 py-2 hover:bg-brand-800">Print</button>
+    </div>
+
+    <div class="print-page px-10 py-10 sm:px-14 sm:py-12">
+        {{-- Business header --}}
+        <div class="flex items-start justify-between border-b border-slate-200 pb-6 mb-6">
+            <div>
+                <p class="text-lg font-semibold tracking-tight text-slate-900">{{ $company->name }}</p>
+                @if ($company->email || $company->phone)
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        {{ collect([$company->email, $company->phone])->filter()->join(' · ') }}
+                    </p>
+                @endif
+            </div>
+            <div class="text-right">
+                <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Payment Receipt</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ $customerPayment->paid_at->format('d M Y') }}</p>
+            </div>
+        </div>
+
+        @if ($customerPayment->isVoided())
+            <div class="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+                This payment was voided.
+                @if ($customerPayment->voided_reason)
+                    {{ $customerPayment->voided_reason }}
+                @endif
+            </div>
+        @endif
+
+        {{-- Received from / reference --}}
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Received from</p>
+                <p class="text-sm font-medium text-slate-900">{{ $booking->customer->name }}</p>
+            </div>
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Reference</p>
+                <dl class="text-xs text-slate-600 space-y-1">
+                    <div class="flex justify-between gap-4"><dt class="text-slate-400">Booking</dt><dd class="font-medium text-slate-900">#{{ $booking->id }}</dd></div>
+                    <div class="flex justify-between gap-4"><dt class="text-slate-400">Trip</dt><dd class="font-medium text-slate-900">{{ $booking->trip->destination }}</dd></div>
+                    <div class="flex justify-between gap-4"><dt class="text-slate-400">Method</dt><dd class="font-medium text-slate-900">{{ $customerPayment->method->label() }}</dd></div>
+                    @if ($customerPayment->reference)
+                        <div class="flex justify-between gap-4"><dt class="text-slate-400">Payment reference</dt><dd class="font-medium text-slate-900">{{ $customerPayment->reference }}</dd></div>
+                    @endif
+                </dl>
+            </div>
+        </div>
+
+        {{-- Amount --}}
+        <div class="flex justify-between items-center border-t border-slate-200 pt-4">
+            <span class="text-sm font-semibold text-slate-900">Amount received</span>
+            <span class="text-xl font-semibold text-slate-900 tabular-nums">{{ number_format((float) $customerPayment->amount, 2) }}</span>
+        </div>
+
+        @if ($customerPayment->notes)
+            <div class="mt-8 pt-6 border-t border-slate-100">
+                <p class="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">Notes</p>
+                <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-line">{{ $customerPayment->notes }}</p>
+            </div>
+        @endif
+
+        <p class="mt-10 pt-6 border-t border-slate-100 text-[11px] text-slate-400">
+            This receipt was generated by {{ $company->name }} on {{ now()->format('d M Y') }}.
+        </p>
+    </div>
+</body>
+</html>

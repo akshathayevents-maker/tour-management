@@ -5,6 +5,7 @@
 @section('content')
     <x-page-header :title="$invoice->invoice_number" subtitle="{{ $invoice->booking->trip->destination }} · {{ $invoice->booking->customer->name }}">
         <x-slot:actions>
+            <x-button tag="a" href="{{ route('invoices.print', $invoice) }}" target="_blank" variant="secondary">Print</x-button>
             <x-button tag="a" href="{{ route('bookings.show', $invoice->booking) }}" variant="secondary">Back to booking</x-button>
             @unless ($invoice->isCancelled())
                 <details class="relative">

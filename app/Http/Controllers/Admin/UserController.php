@@ -47,11 +47,14 @@ class UserController extends Controller
             : auth()->user()->company_id;
 
         $user = $provisioning->createStaffUser([
-            'name' => $request->string('name'),
-            'email' => $request->string('email'),
-            'role' => $request->string('role'),
+            'name' => $request->string('name')->value(),
+            'email' => $request->string('email')->value(),
+            'role' => $request->string('role')->value(),
             'company_id' => $companyId,
         ]);
+
+        activity()->performedOn($user)->causedBy(request()->user())
+            ->log("User \"{$user->name}\" provisioned.");
 
         return redirect()
             ->route('admin.users.index')
@@ -63,6 +66,10 @@ class UserController extends Controller
         $this->authorize('update', $user);
 
         $user->update(['is_active' => ! $user->is_active]);
+
+        $event = $user->is_active ? 'activated' : 'deactivated';
+        activity()->performedOn($user)->causedBy(request()->user())
+            ->log("User \"{$user->name}\" {$event}.");
 
         return back()->with('status', $user->is_active ? 'User activated.' : 'User deactivated.');
     }
