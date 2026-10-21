@@ -7,19 +7,34 @@ use App\Http\Requests\FollowUp\RescheduleFollowUpRequest;
 use App\Http\Requests\FollowUp\StoreFollowUpRequest;
 use App\Models\FollowUp;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class FollowUpController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', FollowUp::class);
 
-        $withSubject = fn ($query) => $query->with('followupable', 'creator')->orderBy('due_at');
+        // reason/notes are the only directly-searchable columns on the
+        // follow_ups table itself — the related subject (Lead/Customer/
+        // Enquiry/Trip) is polymorphic, so searching by subject name
+        // would need a per-type join; not attempted here, kept simple
+        // and fast for what the table actually supports.
+        $withSubject = fn ($query) => $query
+            ->with('followupable', 'creator')
+            ->when($request->filled('q'), fn ($q) => $q->where(function ($q) use ($request) {
+                $search = $request->string('q');
+                $q->where('reason', 'like', "%{$search}%")->orWhere('notes', 'like', "%{$search}%");
+            }))
+            ->orderBy('due_at');
 
-        $overdue = $withSubject(FollowUp::query()->overdue())->get();
-        $dueToday = $withSubject(FollowUp::query()->dueToday())->get();
-        $upcoming = $withSubject(FollowUp::query()->upcoming())->get();
+        // Each group paginates independently (distinct page-name params,
+        // same pattern as the Money page's customer_page/supplier_page)
+        // rather than loading every pending follow-up into memory.
+        $overdue = $withSubject(FollowUp::query()->overdue())->paginate(15, ['*'], 'overdue_page')->withQueryString();
+        $dueToday = $withSubject(FollowUp::query()->dueToday())->paginate(15, ['*'], 'today_page')->withQueryString();
+        $upcoming = $withSubject(FollowUp::query()->upcoming())->paginate(15, ['*'], 'upcoming_page')->withQueryString();
 
         return view('follow_ups.index', compact('overdue', 'dueToday', 'upcoming'));
     }

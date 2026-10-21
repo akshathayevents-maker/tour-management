@@ -12,25 +12,25 @@
     </div>
 
     {{-- Summary strip --}}
-    <div class="grid grid-cols-3 gap-3.5 mb-6">
+    <div class="grid grid-cols-3 gap-3.5 mb-5">
         <div class="bg-white rounded-xl border border-slate-200/80 p-4">
             <div class="flex items-center justify-between">
                 <p class="text-[12.5px] font-medium text-slate-500">Overdue</p>
-                <span class="flex h-7 w-7 items-center justify-center rounded-md {{ $overdue->isNotEmpty() ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-400' }}">
+                <span class="flex h-7 w-7 items-center justify-center rounded-md {{ $overdue->total() > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-400' }}">
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
                 </span>
             </div>
-            <p class="mt-2 text-[26px] leading-none font-semibold tabular-nums {{ $overdue->isNotEmpty() ? 'text-red-700' : 'text-slate-900' }}">{{ $overdue->count() }}</p>
+            <p class="mt-2 text-[26px] leading-none font-semibold tabular-nums {{ $overdue->total() > 0 ? 'text-red-700' : 'text-slate-900' }}">{{ $overdue->total() }}</p>
             <p class="mt-1.5 text-xs text-slate-400">Needs attention</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200/80 p-4">
             <div class="flex items-center justify-between">
                 <p class="text-[12.5px] font-medium text-slate-500">Today</p>
-                <span class="flex h-7 w-7 items-center justify-center rounded-md {{ $dueToday->isNotEmpty() ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400' }}">
+                <span class="flex h-7 w-7 items-center justify-center rounded-md {{ $dueToday->total() > 0 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400' }}">
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM12.75 7.5a.75.75 0 00-1.5 0v5c0 .27.144.518.378.651l3.5 2a.75.75 0 00.744-1.302l-3.122-1.784V7.5z" clip-rule="evenodd" /></svg>
                 </span>
             </div>
-            <p class="mt-2 text-[26px] leading-none font-semibold tabular-nums text-slate-900">{{ $dueToday->count() }}</p>
+            <p class="mt-2 text-[26px] leading-none font-semibold tabular-nums text-slate-900">{{ $dueToday->total() }}</p>
             <p class="mt-1.5 text-xs text-slate-400">Due today</p>
         </div>
         <div class="bg-white rounded-xl border border-slate-200/80 p-4">
@@ -40,13 +40,17 @@
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3a.75.75 0 011.5 0v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zM4.5 9v9.75a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V9h-16.5z" clip-rule="evenodd" /></svg>
                 </span>
             </div>
-            <p class="mt-2 text-[26px] leading-none font-semibold tabular-nums text-slate-900">{{ $upcoming->count() }}</p>
+            <p class="mt-2 text-[26px] leading-none font-semibold tabular-nums text-slate-900">{{ $upcoming->total() }}</p>
             <p class="mt-1.5 text-xs text-slate-400">What's next</p>
         </div>
     </div>
 
+    <x-filter-bar searchPlaceholder="Search by reason or notes…" :searchValue="request('q')">
+        <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-600 text-[13px] font-medium px-3 py-1.5 hover:bg-slate-50">Search</button>
+    </x-filter-bar>
+
     @php
-        $isEmpty = $overdue->isEmpty() && $dueToday->isEmpty() && $upcoming->isEmpty();
+        $isEmpty = $overdue->total() === 0 && $dueToday->total() === 0 && $upcoming->total() === 0;
 
         $destinationContext = function ($followUp) {
             $subject = $followUp->followupable;
@@ -80,6 +84,7 @@
                             @include('follow_ups._row', ['followUp' => $followUp, 'urgency' => 'overdue', 'destination' => $destinationContext($followUp)])
                         @endforeach
                     </div>
+                    <div class="mt-3">{{ $overdue->links() }}</div>
                 </div>
             @endif
 
@@ -94,6 +99,7 @@
                             @include('follow_ups._row', ['followUp' => $followUp, 'urgency' => 'today', 'destination' => $destinationContext($followUp)])
                         @endforeach
                     </div>
+                    <div class="mt-3">{{ $dueToday->links() }}</div>
                 </div>
             @endif
 
@@ -108,6 +114,7 @@
                             @include('follow_ups._row', ['followUp' => $followUp, 'urgency' => 'upcoming', 'destination' => $destinationContext($followUp)])
                         @endforeach
                     </div>
+                    <div class="mt-3">{{ $upcoming->links() }}</div>
                 </div>
             @endif
         </div>

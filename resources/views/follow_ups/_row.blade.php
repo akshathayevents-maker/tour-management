@@ -34,6 +34,27 @@
 
     <div class="flex items-center gap-2 shrink-0">
         <a href="{{ $followUp->subjectUrl() }}" class="text-xs font-medium text-slate-600 hover:text-brand-700 rounded-md border border-slate-200 px-2.5 py-1.5 hover:border-brand-200 hover:bg-brand-50/50 transition-colors">Open</a>
+
+        <details class="relative">
+            <summary class="list-none text-xs font-medium text-slate-600 hover:text-brand-700 rounded-md border border-slate-200 px-2.5 py-1.5 hover:border-brand-200 hover:bg-brand-50/50 transition-colors cursor-pointer select-none">Reschedule</summary>
+            <form method="POST" action="{{ route('follow-ups.reschedule', $followUp) }}" class="absolute right-0 top-full mt-1.5 z-10 w-64 bg-white rounded-lg border border-slate-200 shadow-lg p-3.5">
+                @csrf @method('PATCH')
+                <label class="block text-xs font-medium text-slate-600 mb-1">New due date &amp; time</label>
+                <input type="datetime-local" name="due_at" required
+                       value="{{ $followUp->due_at->format('Y-m-d\TH:i') }}"
+                       class="w-full rounded-md border border-slate-300 text-sm px-2.5 py-1.5 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" />
+                <label class="block text-xs font-medium text-slate-600 mb-1">Notes (optional)</label>
+                <textarea name="notes" rows="2" class="w-full rounded-md border border-slate-300 text-sm px-2.5 py-1.5 mb-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{{ $followUp->notes }}</textarea>
+                <button class="w-full text-xs font-medium text-white bg-brand-700 hover:bg-brand-800 rounded-md px-2.5 py-1.5">Save new time</button>
+            </form>
+        </details>
+
+        <form method="POST" action="{{ route('follow-ups.cancel', $followUp) }}"
+              onsubmit="return confirm('Cancel this follow-up? It will no longer appear as pending.');">
+            @csrf @method('PATCH')
+            <button class="text-xs font-medium text-slate-500 hover:text-red-700 rounded-md border border-slate-200 px-2.5 py-1.5 hover:bg-red-50 hover:border-red-200 transition-colors">Cancel</button>
+        </form>
+
         <form method="POST" action="{{ route('follow-ups.complete', $followUp) }}">
             @csrf @method('PATCH')
             <button class="text-xs font-medium text-emerald-700 hover:text-emerald-800 rounded-md border border-slate-200 px-2.5 py-1.5 hover:bg-emerald-50 hover:border-emerald-200 transition-colors">Complete</button>
@@ -70,6 +91,27 @@
                 <form method="POST" action="{{ route('follow-ups.complete', $followUp) }}" class="flex-1">
                     @csrf @method('PATCH')
                     <button class="w-full text-xs font-medium text-emerald-700 rounded-md border border-slate-200 px-2.5 py-2 hover:bg-emerald-50">Complete</button>
+                </form>
+            </div>
+
+            <div class="mt-2 flex items-center gap-2">
+                <details class="flex-1">
+                    <summary class="list-none text-center text-xs font-medium text-slate-600 rounded-md border border-slate-200 px-2.5 py-2 hover:bg-slate-50 cursor-pointer select-none">Reschedule</summary>
+                    <form method="POST" action="{{ route('follow-ups.reschedule', $followUp) }}" class="mt-1.5 bg-white rounded-lg border border-slate-200 p-3">
+                        @csrf @method('PATCH')
+                        <label class="block text-xs font-medium text-slate-600 mb-1">New due date &amp; time</label>
+                        <input type="datetime-local" name="due_at" required
+                               value="{{ $followUp->due_at->format('Y-m-d\TH:i') }}"
+                               class="w-full rounded-md border border-slate-300 text-sm px-2.5 py-1.5 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" />
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Notes (optional)</label>
+                        <textarea name="notes" rows="2" class="w-full rounded-md border border-slate-300 text-sm px-2.5 py-1.5 mb-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">{{ $followUp->notes }}</textarea>
+                        <button class="w-full text-xs font-medium text-white bg-brand-700 hover:bg-brand-800 rounded-md px-2.5 py-1.5">Save new time</button>
+                    </form>
+                </details>
+                <form method="POST" action="{{ route('follow-ups.cancel', $followUp) }}" class="flex-1"
+                      onsubmit="return confirm('Cancel this follow-up? It will no longer appear as pending.');">
+                    @csrf @method('PATCH')
+                    <button class="w-full text-xs font-medium text-slate-500 rounded-md border border-slate-200 px-2.5 py-2 hover:bg-red-50 hover:text-red-700">Cancel</button>
                 </form>
             </div>
         </div>
