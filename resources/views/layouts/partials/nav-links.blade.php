@@ -17,6 +17,7 @@
             ['route' => 'trips.index', 'match' => ['trips.*', 'itineraries.*', 'quotation-versions.*'], 'label' => 'Trips', 'icon' => 'map'],
             ['route' => 'bookings.index', 'match' => ['bookings.*', 'invoices.*'], 'label' => 'Bookings', 'icon' => 'check'],
             ['route' => 'suppliers.index', 'match' => ['suppliers.*'], 'label' => 'Suppliers', 'icon' => 'truck'],
+            ['route' => 'itinerary-templates.index', 'match' => ['itinerary-templates.*'], 'label' => 'Itinerary templates', 'icon' => 'map'],
             ['route' => 'money', 'match' => ['money'], 'label' => 'Money', 'icon' => 'wallet'],
         ];
     }
@@ -62,6 +63,7 @@
                 @php $active = request()->routeIs(...$item['match']); @endphp
                 <a href="{{ route($item['route']) }}"
                    class="group relative flex items-center gap-2.5 pl-3.5 pr-3 py-2 rounded-lg text-[13.5px] font-medium transition-colors
+                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-900
                           {{ $active ? 'bg-gradient-to-r from-white/[0.09] to-white/[0.03] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]' : 'text-brand-200/80 hover:bg-white/[0.04] hover:text-white' }}">
                     @if ($active)
                         <span class="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-accent-500 shadow-[0_0_8px_theme(colors.accent.500)]"></span>

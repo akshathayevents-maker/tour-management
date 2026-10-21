@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\SupplierType;
 use App\Http\Requests\Supplier\StoreSupplierRequest;
 use App\Http\Requests\Supplier\UpdateSupplierRequest;
+use App\Models\BookingItem;
 use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,7 +50,24 @@ class SupplierController extends Controller
     {
         $this->authorize('view', $supplier);
 
-        return view('suppliers.show', compact('supplier'));
+        $supplier->load(['bookingItems.booking.customer', 'bookingItems.booking.trip', 'bookingItems.supplierPayments']);
+
+        // Aggregated by summing each item's own existing calculation
+        // methods (BookingItem::totalPaidToSupplier() / amountPayable())
+        // — same approach already established on the Booking detail hero
+        // and the Money page's SQL equivalent — never a second, competing
+        // formula.
+        $totalCost = (float) $supplier->bookingItems->sum('cost');
+        $totalPaid = (float) $supplier->bookingItems->sum(fn (BookingItem $item) => $item->totalPaidToSupplier());
+        $totalPayable = (float) $supplier->bookingItems->sum(fn (BookingItem $item) => max(0, $item->amountPayable() ?? 0));
+
+        $recentPayments = $supplier->bookingItems
+            ->flatMap(fn (BookingItem $item) => $item->supplierPayments->map(fn ($payment) => tap($payment, fn ($p) => $p->setRelation('bookingItem', $item))))
+            ->sortByDesc('paid_at')
+            ->take(10)
+            ->values();
+
+        return view('suppliers.show', compact('supplier', 'totalCost', 'totalPaid', 'totalPayable', 'recentPayments'));
     }
 
     public function edit(Supplier $supplier): View

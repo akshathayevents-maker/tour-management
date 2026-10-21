@@ -45,33 +45,50 @@
             <x-summary-panel title="Itinerary">
                 @if ($trip->itinerary)
                     <x-slot:actions>
+                        <a href="{{ route('trips.itinerary-builder.create', $trip) }}" class="text-xs font-medium text-brand-700 hover:text-brand-800 mr-3">Build from templates</a>
                         <a href="{{ route('trips.itinerary.print', $trip) }}" target="_blank" class="text-xs font-medium text-brand-700 hover:text-brand-800">Print</a>
                     </x-slot:actions>
                 @endif
                 @if (! $trip->itinerary)
                     <x-empty-state
                         title="No itinerary yet."
-                        description="Itinerary is optional — add one if you want a day-by-day plan." />
-                    <form method="POST" action="{{ route('trips.itinerary.store', $trip) }}" class="mt-3">
-                        @csrf
-                        <x-button type="submit">Create itinerary</x-button>
-                    </form>
+                        description="Build a multi-destination plan from reusable templates, or start with a blank itinerary." />
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <x-button tag="a" href="{{ route('trips.itinerary-builder.create', $trip) }}">Build itinerary</x-button>
+                        <form method="POST" action="{{ route('trips.itinerary.store', $trip) }}">
+                            @csrf
+                            <x-button type="submit" variant="secondary">Start blank itinerary</x-button>
+                        </form>
+                    </div>
                 @elseif ($trip->itinerary->days->isEmpty())
                     <x-empty-state
                         title="No days added yet."
-                        description="Build the day-by-day plan by adding the first day below." />
-                    <form method="POST" action="{{ route('itinerary-days.store', $trip->itinerary) }}" class="mt-3">
-                        @csrf
-                        <input type="hidden" name="day_number" value="1">
-                        <x-button type="submit">+ Add day 1</x-button>
-                    </form>
+                        description="Build the day-by-day plan from templates, or add the first day manually below." />
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <x-button tag="a" href="{{ route('trips.itinerary-builder.create', $trip) }}">Build from templates</x-button>
+                        <form method="POST" action="{{ route('itinerary-days.store', $trip->itinerary) }}">
+                            @csrf
+                            <input type="hidden" name="day_number" value="1">
+                            <x-button type="submit" variant="secondary">+ Add day 1</x-button>
+                        </form>
+                    </div>
                 @else
                     <p class="text-xs text-slate-400 -mt-1 mb-1">
                         {{ $trip->itinerary->days->count() }} {{ Str::plural('day', $trip->itinerary->days->count()) }} planned
+                        @php $destinationCount = $trip->itinerary->days->pluck('destination')->filter()->unique()->count(); @endphp
+                        @if ($destinationCount > 1) &middot; {{ $destinationCount }} destinations @endif
                         &middot; {{ $trip->itinerary->days->sum(fn ($day) => $day->items->count()) }} {{ Str::plural('activity', $trip->itinerary->days->sum(fn ($day) => $day->items->count())) }}
                     </p>
 
+                    @php $previousDestination = null; @endphp
                     @foreach ($trip->itinerary->days as $day)
+                        @if ($day->destination && $day->destination !== $previousDestination)
+                            <div class="flex items-center gap-2 mt-4 first:mt-0 mb-1">
+                                <span class="h-1.5 w-1.5 rounded-full bg-accent-500"></span>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ $day->destination }}</p>
+                            </div>
+                            @php $previousDestination = $day->destination; @endphp
+                        @endif
                         @include('itineraries._day', ['day' => $day])
                     @endforeach
 

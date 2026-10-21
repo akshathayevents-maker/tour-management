@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCompanyRequest;
 use App\Models\Company;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -13,11 +14,15 @@ use Illuminate\View\View;
  */
 class CompanyController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Company::class);
 
-        $companies = Company::query()->latest()->paginate(20);
+        $companies = Company::query()
+            ->when($request->filled('q'), fn ($query) => $query->where('name', 'like', '%'.$request->string('q').'%'))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
 
         return view('admin.companies.index', compact('companies'));
     }

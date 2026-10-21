@@ -7,6 +7,7 @@ use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['name', 'type', 'phone', 'whatsapp', 'email', 'payment_terms', 'notes', 'is_active'])]
@@ -20,5 +21,10 @@ class Supplier extends Model
             'type' => SupplierType::class,
             'is_active' => 'boolean',
         ];
+    }
+
+    public function bookingItems(): HasMany
+    {
+        return $this->hasMany(BookingItem::class)->latest('id');
     }
 }

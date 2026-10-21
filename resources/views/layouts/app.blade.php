@@ -10,7 +10,7 @@
     <div class="min-h-full lg:flex">
         {{-- Mobile top bar + nav --}}
         <details class="lg:hidden bg-brand-900 text-brand-100 group sticky top-0 z-30">
-            <summary class="list-none flex items-center justify-between h-14 px-4 text-white cursor-pointer">
+            <summary class="list-none flex items-center justify-between h-14 px-4 text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-inset">
                 <span class="flex items-center gap-2 text-base font-semibold">
                     <span class="flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-white text-xs font-bold">{{ Str::substr(config('app.name'), 0, 1) }}</span>
                     {{ config('app.name') }}
@@ -39,7 +39,7 @@
 
             <div class="border-t border-white/[0.06] p-3">
                 <details class="relative">
-                    <summary class="list-none flex cursor-pointer items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-white/[0.05]">
+                    <summary class="list-none flex cursor-pointer items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50">
                         <x-avatar :name="auth()->user()->name" class="ring-2 ring-white/10" />
                         <div class="min-w-0 flex-1">
                             <p class="text-[13.5px] font-medium text-white truncate">{{ auth()->user()->name }}</p>
@@ -67,7 +67,7 @@
                 <div class="flex items-center gap-2 sm:gap-3">
                     @hasanyrole('company_admin|company_user')
                         <details class="relative">
-                            <summary class="list-none flex cursor-pointer items-center gap-1.5 rounded-md bg-brand-700 text-white text-[13px] font-medium px-3 py-1.5 hover:bg-brand-800 shadow-sm">
+                            <summary class="list-none flex cursor-pointer items-center gap-1.5 rounded-md bg-brand-700 text-white text-[13px] font-medium px-3 py-1.5 hover:bg-brand-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1">
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" /></svg>
                                 <span class="hidden sm:inline">Quick add</span>
                             </summary>
@@ -83,7 +83,7 @@
                     @endhasanyrole
 
                     <details class="relative lg:hidden">
-                        <summary class="list-none flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-slate-100">
+                        <summary class="list-none flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                             <x-avatar :name="auth()->user()->name" size="sm" />
                         </summary>
                         <div class="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-slate-200 py-1.5 text-sm z-20">

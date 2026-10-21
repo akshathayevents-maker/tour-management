@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\User;
 use App\Services\UserProvisioningService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -17,14 +18,22 @@ use Illuminate\View\View;
  */
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', User::class);
 
         $users = User::query()
             ->with('company', 'roles')
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $search = $request->string('q');
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }

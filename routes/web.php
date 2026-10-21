@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\BookingChecklistItemController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingItemController;
@@ -12,9 +13,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ItineraryBuilderController;
 use App\Http\Controllers\ItineraryController;
 use App\Http\Controllers\ItineraryDayController;
 use App\Http\Controllers\ItineraryItemController;
+use App\Http\Controllers\ItineraryTemplateController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\MoneyController;
 use App\Http\Controllers\QuotationController;
@@ -31,6 +34,11 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:10,1');
+
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [NewPasswordController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {
@@ -76,6 +84,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('itinerary-items/{itineraryItem}', [ItineraryItemController::class, 'update'])->name('itinerary-items.update');
         Route::delete('itinerary-items/{itineraryItem}', [ItineraryItemController::class, 'destroy'])->name('itinerary-items.destroy');
         Route::post('itinerary-items/{itineraryItem}/move', [ItineraryItemController::class, 'move'])->name('itinerary-items.move');
+
+        Route::get('trips/{trip}/itinerary-builder', [ItineraryBuilderController::class, 'create'])->name('trips.itinerary-builder.create');
+        Route::post('trips/{trip}/itinerary-builder', [ItineraryBuilderController::class, 'store'])->name('trips.itinerary-builder.store');
+
+        Route::get('itinerary-templates', [ItineraryTemplateController::class, 'index'])->name('itinerary-templates.index');
+        Route::get('itinerary-templates/create', [ItineraryTemplateController::class, 'create'])->name('itinerary-templates.create');
+        Route::post('itinerary-templates', [ItineraryTemplateController::class, 'store'])->name('itinerary-templates.store');
+        Route::get('itinerary-templates/{itineraryTemplate}/edit', [ItineraryTemplateController::class, 'edit'])->name('itinerary-templates.edit');
+        Route::patch('itinerary-templates/{itineraryTemplate}', [ItineraryTemplateController::class, 'update'])->name('itinerary-templates.update');
+        Route::patch('itinerary-templates/{itineraryTemplate}/toggle-active', [ItineraryTemplateController::class, 'toggleActive'])->name('itinerary-templates.toggle-active');
+        Route::delete('itinerary-templates/{itineraryTemplate}', [ItineraryTemplateController::class, 'destroy'])->name('itinerary-templates.destroy');
 
         Route::resource('suppliers', SupplierController::class)->except(['destroy']);
 
