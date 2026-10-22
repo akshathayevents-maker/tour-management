@@ -12,6 +12,7 @@
     <form method="GET" class="mb-5 flex flex-wrap items-center gap-2 bg-white border border-slate-200/80 rounded-xl px-3 py-2.5">
         <div class="relative flex-1 min-w-[220px]">
             <input type="search" name="q" value="{{ request('q') }}" placeholder="Search templates by name or destination…"
+                   aria-label="Search templates by name or destination"
                    class="w-full rounded-md border-slate-300 shadow-sm text-sm">
         </div>
         <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-600 text-[13px] font-medium px-3 py-1.5 hover:bg-slate-50">Search</button>

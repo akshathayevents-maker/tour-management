@@ -83,7 +83,7 @@
                     @endhasanyrole
 
                     <details class="relative lg:hidden">
-                        <summary class="list-none flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                        <summary aria-label="Account menu" class="list-none flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
                             <x-avatar :name="auth()->user()->name" size="sm" />
                         </summary>
                         <div class="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-slate-200 py-1.5 text-sm z-20">
