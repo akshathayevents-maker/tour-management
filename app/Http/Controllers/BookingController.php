@@ -9,6 +9,7 @@ use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\QuotationVersion;
+use App\Models\Supplier;
 use App\Models\Trip;
 use App\Services\BookingService;
 use Illuminate\Http\RedirectResponse;
@@ -95,7 +96,21 @@ class BookingController extends Controller
 
         $activities = Activity::forSubject($booking)->latest()->limit(20)->get();
 
-        return view('bookings.show', compact('booking', 'activities'));
+        // Grouped once here (not per booking-item row, which was the
+        // previous behaviour in booking_items/_item.blade.php) so the
+        // supplier dropdown can prioritize suppliers whose operating
+        // location matches this trip's destination without re-querying
+        // Supplier for every item on the page.
+        $destination = $booking->trip->destination;
+        $allSuppliers = Supplier::where('is_active', true)->orderBy('name')->get();
+        $matchingSuppliers = $allSuppliers->filter(fn (Supplier $s) => $s->matchesDestination($destination))->values();
+        $otherSuppliers = $allSuppliers->filter(fn (Supplier $s) => $s->operating_location !== null && ! $s->matchesDestination($destination))->values();
+        $unspecifiedSuppliers = $allSuppliers->filter(fn (Supplier $s) => $s->operating_location === null)->values();
+
+        return view('bookings.show', compact(
+            'booking', 'activities', 'destination',
+            'matchingSuppliers', 'otherSuppliers', 'unspecifiedSuppliers',
+        ));
     }
 
     /**

@@ -1,5 +1,13 @@
-{{-- Expects $item (BookingItem with supplier loaded), $locked (bool) --}}
-@php $locked = $locked ?? false; @endphp
+{{-- Expects $item (BookingItem with supplier loaded), $locked (bool), and
+     the trip's $destination plus $matchingSuppliers / $otherSuppliers /
+     $unspecifiedSuppliers (pre-grouped once in BookingController::show —
+     never re-queried per item). --}}
+@php
+    $locked = $locked ?? false;
+    $matchingSuppliers = $matchingSuppliers ?? collect();
+    $otherSuppliers = $otherSuppliers ?? collect();
+    $unspecifiedSuppliers = $unspecifiedSuppliers ?? collect();
+@endphp
 <div class="py-3 border-b border-slate-50 last:border-0 text-sm">
     <div class="flex items-start justify-between gap-2">
         <div class="flex-1 min-w-0">
@@ -70,9 +78,30 @@
                     </select>
                     <select name="supplier_id" class="block w-full rounded-md border-slate-300 shadow-sm text-sm">
                         <option value="">Supplier (optional)</option>
-                        @foreach (\App\Models\Supplier::where('is_active', true)->orderBy('name')->get() as $supplier)
-                            <option value="{{ $supplier->id }}" @selected($item->supplier_id === $supplier->id)>{{ $supplier->name }}</option>
-                        @endforeach
+                        @if ($matchingSuppliers->isNotEmpty())
+                            <optgroup label="Matches {{ $destination }}">
+                                @foreach ($matchingSuppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" @selected($item->supplier_id === $supplier->id)>{{ $supplier->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if ($otherSuppliers->isNotEmpty())
+                            <optgroup label="Other locations">
+                                @foreach ($otherSuppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" @selected($item->supplier_id === $supplier->id)>{{ $supplier->name }} &middot; {{ $supplier->operating_location }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if ($unspecifiedSuppliers->isNotEmpty())
+                            <optgroup label="Location not specified">
+                                @foreach ($unspecifiedSuppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" @selected($item->supplier_id === $supplier->id)>{{ $supplier->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if ($matchingSuppliers->isEmpty() && $otherSuppliers->isEmpty() && $unspecifiedSuppliers->isEmpty())
+                            <option value="" disabled>No active suppliers yet</option>
+                        @endif
                     </select>
                     <input type="number" step="0.01" min="0" name="sell_price" value="{{ $item->sell_price }}" placeholder="Selling price"
                            class="block w-full rounded-md border-slate-300 shadow-sm text-sm">

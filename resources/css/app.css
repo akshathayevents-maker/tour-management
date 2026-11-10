@@ -98,45 +98,42 @@
 }
 
 @layer components {
-    /* Dashboard-only premium dark theme. Scoped entirely under `.dash`
-       so it cannot leak into any other page — every other view keeps
-       the existing light canvas/card system untouched. */
+    /* Dashboard design tokens. Scoped entirely under `.dash` so it cannot
+       leak into any other page. Light, premium surface system consistent
+       with the app's canvas/brand palette — no separate dark theme; once
+       a global theme switcher exists these tokens are the hook point. */
     .dash {
-        --dash-bg: #070b14;
-        --dash-surface: #0d1422;
-        --dash-surface-2: #111b2a;
-        --dash-border: rgba(148, 163, 184, 0.08);
-        --dash-border-strong: rgba(148, 163, 184, 0.18);
-        --dash-text: #f8fafc;
-        --dash-text-2: #94a3b8;
-        --dash-text-3: #64748b;
+        --dash-bg: #f6f7f9;
+        --dash-surface: #ffffff;
+        --dash-surface-2: #f3f4f7;
+        --dash-border: rgba(15, 23, 42, 0.08);
+        --dash-border-strong: rgba(15, 23, 42, 0.16);
+        --dash-text: #0f172a;
+        --dash-text-2: #475569;
+        --dash-text-3: #94a3b8;
 
         /* Semantic accent system — one hue per domain, used sparingly
            (icon chips, chart strokes, status dots, borders) rather than
-           as card backgrounds, so the UI stays dark with accent *signal*
-           instead of becoming a wall of colored boxes. */
-        --dash-primary: #38bdf8;   /* leads — cyan/blue */
-        --dash-leads: #22d3ee;
-        --dash-enquiries: #a78bfa; /* enquiries — violet */
-        --dash-accent: #a78bfa;
-        --dash-success: #10b981;  /* payments — emerald */
-        --dash-payments: #10b981;
-        --dash-warning: #f59e0b;  /* bookings — amber */
-        --dash-bookings: #fb923c;
-        --dash-supplier: #fbbf24; /* supplier — gold */
-        --dash-danger: #ef4444;   /* overdue/alert — coral red */
-        --dash-overdue: #fb7185;
-        --dash-insight: #ec4899;  /* activity/insights — pink, sparing use */
+           as card backgrounds, so colour signals meaning instead of
+           becoming a wall of coloured boxes. Tuned for contrast on white. */
+        --dash-primary: #2563eb;   /* leads — blue */
+        --dash-leads: #0e7490;
+        --dash-enquiries: #7c3aed; /* enquiries — violet */
+        --dash-accent: #7c3aed;
+        --dash-success: #059669;  /* payments — emerald */
+        --dash-payments: #059669;
+        --dash-warning: #d97706;  /* bookings — amber */
+        --dash-bookings: #d97706;
+        --dash-supplier: #b45309; /* supplier — gold */
+        --dash-danger: #dc2626;   /* overdue/alert — red */
+        --dash-overdue: #e11d48;
+        --dash-insight: #db2777;  /* activity/insights — pink, sparing use */
 
         /* No border/shadow here on purpose — this is a background layer
            the sections sit on, not a card wrapping other cards.
            Negative margins cancel out <main>'s own p-4/sm:p-6 padding
-           (shared across every page) so the dark surface fills the full
-           main-content area edge to edge instead of floating as a
-           narrow, white-framed card. max-width/margin-auto were removed
-           — they were centering and shrinking the dashboard on wide
-           viewports, which is exactly the "white canvas around a small
-           dark card" bug this fixes. */
+           (shared across every page) so the surface fills the full
+           main-content area edge to edge. */
         background: var(--dash-bg);
         color: var(--dash-text);
         width: auto;
@@ -155,29 +152,400 @@
         background: var(--dash-surface);
         border: 1px solid var(--dash-border);
         border-radius: 14px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
         transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
     }
     .dash-card:hover {
         border-color: var(--dash-border-strong);
-        box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 10px 24px -14px rgba(15, 23, 42, 0.18);
     }
     .dash-row {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.625rem 1rem;
+        border-top: 1px solid var(--dash-border);
         transition: background-color .12s ease;
     }
+    .dash-row:first-child { border-top: none; }
     .dash-row:hover {
         background: var(--dash-surface-2);
     }
 
-    /* Dark form controls — scoped under .dash so other pages' .form-input
-       / .form-select (light theme) are untouched. Used on the dashboard
-       and on pages migrated into this same design system (e.g. New
-       Booking). */
+    /* ---------- Section heading + "view all" link ---------- */
+    .dash-section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.625rem;
+    }
+    .dash-section-head h3 {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--dash-text);
+        letter-spacing: -0.01em;
+    }
+    .dash-link {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--dash-primary);
+    }
+    .dash-link:hover { text-decoration: underline; }
+
+    /* ---------- Hero ---------- */
+    .dash-hero {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.125rem 1.375rem;
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: 14px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .dash-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dash-primary);
+        margin-bottom: 0.375rem;
+    }
+    .dash-pulse {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+    .dash-greeting {
+        font-size: 26px;
+        line-height: 1.15;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+        color: var(--dash-text);
+    }
+    .dash-greeting-sub {
+        margin-top: 0.35rem;
+        font-size: 13.5px;
+        line-height: 1.5;
+        color: var(--dash-text-2);
+        max-width: 50ch;
+    }
+    .dash-greeting-sub strong { color: var(--dash-text); font-weight: 600; }
+    .dash-hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+    .dash-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        background: var(--color-brand-600, #1f2d63);
+        box-shadow: 0 4px 12px -4px rgba(31, 45, 99, 0.45);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .dash-btn-primary:hover { transform: translateY(-1px); }
+    .dash-btn-ghost {
+        border-radius: 10px;
+        padding: 0.5rem 0.9rem;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--dash-text-2);
+        border: 1px solid var(--dash-border-strong);
+        transition: border-color .15s ease, color .15s ease;
+    }
+    .dash-btn-ghost:hover {
+        color: var(--dash-text);
+        border-color: var(--dash-text-3);
+    }
+
+    /* ---------- KPI grid ---------- */
+    .dash-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.875rem;
+    }
+    @media (min-width: 1024px) {
+        .dash-kpi-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .dash-kpi {
+        display: flex;
+        flex-direction: column;
+        padding: 1.125rem 1.25rem;
+        min-height: 176px;
+    }
+    .dash-kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .dash-kpi-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        width: 32px;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+    .dash-kpi-link {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--dash-text-3);
+        opacity: 0;
+        transform: translateX(-2px);
+        transition: opacity .15s ease, transform .15s ease;
+    }
+    .group:hover .dash-kpi-link { opacity: 1; transform: translateX(0); color: var(--dash-primary); }
+    .dash-kpi-label {
+        margin-top: 0.75rem;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--dash-text-3);
+    }
+    .dash-kpi-value {
+        margin-top: 0.2rem;
+        font-size: 32px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--dash-text);
+        font-variant-numeric: tabular-nums;
+    }
+    .dash-kpi-value.is-zero { color: var(--dash-text-3); }
+    .dash-kpi-sub {
+        margin-top: 0.3rem;
+        font-size: 11.5px;
+        color: var(--dash-text-3);
+    }
+    .dash-kpi-spark {
+        margin-top: auto;
+        height: 28px;
+    }
+    .dash-kpi-ratio {
+        margin-top: auto;
+        display: flex;
+        gap: 3px;
+        height: 6px;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .dash-kpi-ratio > div { border-radius: 3px; }
+
+    /* ---------- Operations cards ---------- */
+    .dash-ops-grid {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 0.875rem;
+    }
+    @media (min-width: 640px) {
+        .dash-ops-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1280px) {
+        .dash-ops-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .dash-ops-card {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem 0 0.5rem;
+    }
+    .dash-ops-card-head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0 1.125rem;
+        margin-bottom: 0.25rem;
+    }
+    .dash-ops-dot { height: 7px; width: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dash-ops-title {
+        flex: 1;
+        min-width: 0;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--dash-text-2);
+    }
+    .dash-ops-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+    }
+    .dash-ops-badge.is-neutral {
+        color: var(--dash-text-3) !important;
+        background: var(--dash-surface-2) !important;
+    }
+    .dash-ops-row { padding: 0.5rem 1.125rem; }
+    .dash-ops-row-name { font-size: 12.5px; font-weight: 500; color: var(--dash-text); }
+    .dash-ops-row-meta { font-size: 11px; color: var(--dash-text-3); }
+    .dash-ops-row-amount {
+        flex-shrink: 0;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--dash-text);
+        font-variant-numeric: tabular-nums;
+    }
+    .dash-ops-healthy {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--dash-success);
+        padding: 0.5rem 1.125rem;
+    }
+    .dash-ops-action {
+        display: block;
+        margin-top: 0.25rem;
+        padding: 0.5rem 1.125rem 0;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--dash-primary);
+        border-top: 1px solid var(--dash-border);
+    }
+    .dash-ops-action:hover { text-decoration: underline; }
+
+    /* ---------- Priority workspace ---------- */
+    .dash-priority-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+    }
+    @media (min-width: 1024px) {
+        .dash-priority-grid { grid-template-columns: 1.65fr 1fr; }
+    }
+
+    .dash-attn-row { padding: 0.75rem 1.125rem; }
+    .dash-attn-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 2.25rem;
+        width: 2.25rem;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+    .dash-attn-name { font-size: 13.5px; font-weight: 500; color: var(--dash-text); }
+    .dash-attn-meta { margin-top: 0.1rem; font-size: 12px; }
+    .dash-attn-cta {
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--dash-text-2);
+        border: 1px solid var(--dash-border-strong);
+        border-radius: 8px;
+        padding: 0.3rem 0.7rem;
+    }
+    .dash-row:hover .dash-attn-cta { color: var(--dash-primary); border-color: var(--dash-primary); }
+
+    .dash-timeline-card { padding: 1rem 1.125rem 0.25rem; }
+    .dash-timeline-row { display: flex; gap: 0.625rem; }
+    .dash-timeline-rail {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        padding-top: 0.3rem;
+    }
+    .dash-timeline-dot {
+        height: 7px;
+        width: 7px;
+        border-radius: 50%;
+        background: var(--dash-insight);
+        flex-shrink: 0;
+    }
+    .dash-timeline-line {
+        width: 1px;
+        flex: 1;
+        background: var(--dash-border);
+        margin-top: 0.3rem;
+    }
+    .dash-timeline-row:last-child .dash-timeline-line { display: none; }
+    .dash-timeline-text {
+        font-size: 12.5px;
+        line-height: 1.45;
+    }
+    .dash-timeline-time {
+        margin-top: 0.1rem;
+        font-size: 11px;
+        color: var(--dash-text-3);
+    }
+
+    .dash-empty-compact {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem 1.125rem;
+    }
+    .dash-empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 2rem;
+        width: 2rem;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: rgba(5, 150, 105, .1);
+        color: var(--dash-success);
+    }
+    .dash-empty-icon-muted {
+        background: var(--dash-surface-2);
+        color: var(--dash-text-3);
+    }
+    .dash-empty-title { font-size: 13px; font-weight: 600; color: var(--dash-text); }
+    .dash-empty-sub { font-size: 12px; color: var(--dash-text-2); }
+
+    /* ---------- Business pipeline ---------- */
+    .dash-pipeline-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+    }
+    @media (min-width: 1024px) {
+        .dash-pipeline-grid { grid-template-columns: 1.2fr 1fr; }
+    }
+
+    .dash-booking-row { padding: 0.7rem 1.125rem; }
+    .dash-booking-ref {
+        flex-shrink: 0;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--dash-text-3);
+        width: 3.25rem;
+    }
+    .dash-booking-name { font-size: 13.5px; font-weight: 500; color: var(--dash-text); }
+    .dash-booking-meta { font-size: 11.5px; color: var(--dash-text-3); }
+    .dash-booking-amount { flex-shrink: 0; text-align: right; width: 6rem; }
+    .dash-booking-due { font-size: 13px; font-weight: 600; color: var(--dash-warning); font-variant-numeric: tabular-nums; }
+    .dash-booking-due-label { font-size: 10.5px; color: var(--dash-text-3); }
+    .dash-booking-paid { font-size: 12px; font-weight: 600; color: var(--dash-success); }
+
+    .dash-pipeline-row { padding: 0.625rem 1.125rem; }
+    .dash-pipeline-name { font-size: 13px; font-weight: 500; color: var(--dash-text); }
+    .dash-pipeline-meta { font-size: 11.5px; color: var(--dash-text-3); }
+    .dash-pipeline-type { font-weight: 600; color: var(--dash-text-2); }
+
+    /* Form controls on the dashboard's light surface — scoped under .dash
+       so other pages' .form-input / .form-select are untouched. Used on
+       the dashboard and on pages migrated into this same design system
+       (e.g. New Booking). */
     .dash-field {
         display: block;
         width: 100%;
         border-radius: 10px;
-        background: #0b1220;
-        border: 1.5px solid #263247;
+        background: #ffffff;
+        border: 1.5px solid var(--color-slate-300, #cbd5e1);
         color: var(--dash-text);
         font-size: 0.9375rem;
         padding: 0.75rem 0.875rem;
@@ -187,12 +555,12 @@
         color: var(--dash-text-3);
     }
     .dash-field:hover {
-        border-color: rgba(148, 163, 184, 0.3);
+        border-color: var(--dash-border-strong);
     }
     .dash-field:focus {
         outline: none;
-        border-color: var(--dash-leads);
-        box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+        border-color: var(--dash-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
     .dash-label {
         display: block;

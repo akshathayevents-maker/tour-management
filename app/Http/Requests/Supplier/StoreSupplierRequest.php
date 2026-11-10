@@ -19,6 +19,7 @@ class StoreSupplierRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'type' => ['nullable', Rule::enum(SupplierType::class)],
+            'operating_location' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'whatsapp' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:255'],

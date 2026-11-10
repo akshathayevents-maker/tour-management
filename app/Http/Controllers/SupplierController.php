@@ -20,13 +20,32 @@ class SupplierController extends Controller
         $suppliers = Supplier::query()
             ->when($request->filled('q'), fn ($query) => $query->where('name', 'like', '%'.$request->string('q').'%'))
             ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')))
+            ->when($request->filled('location'), function ($query) use ($request) {
+                $location = $request->string('location')->toString();
+
+                if ($location === '__unspecified__') {
+                    $query->whereNull('operating_location');
+                } else {
+                    $query->where('operating_location', $location);
+                }
+            })
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
 
+        // Distinct, company-scoped locations already in use — feeds the
+        // directory filter and the create/edit autocomplete so operators
+        // reuse existing spellings instead of typing free-text variants.
+        $locations = Supplier::query()
+            ->whereNotNull('operating_location')
+            ->distinct()
+            ->orderBy('operating_location')
+            ->pluck('operating_location');
+
         return view('suppliers.index', [
             'suppliers' => $suppliers,
             'types' => SupplierType::cases(),
+            'locations' => $locations,
         ]);
     }
 
@@ -34,7 +53,9 @@ class SupplierController extends Controller
     {
         $this->authorize('create', Supplier::class);
 
-        return view('suppliers.create');
+        $locations = Supplier::query()->whereNotNull('operating_location')->distinct()->orderBy('operating_location')->pluck('operating_location');
+
+        return view('suppliers.create', compact('locations'));
     }
 
     public function store(StoreSupplierRequest $request): RedirectResponse
@@ -74,7 +95,9 @@ class SupplierController extends Controller
     {
         $this->authorize('update', $supplier);
 
-        return view('suppliers.edit', compact('supplier'));
+        $locations = Supplier::query()->whereNotNull('operating_location')->distinct()->orderBy('operating_location')->pluck('operating_location');
+
+        return view('suppliers.edit', compact('supplier', 'locations'));
     }
 
     public function update(UpdateSupplierRequest $request, Supplier $supplier): RedirectResponse

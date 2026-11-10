@@ -23,6 +23,17 @@
                         @endforeach
                     </select>
                 </x-field>
+                <x-field label="Operating location" name="operating_location">
+                    <input id="operating_location" name="operating_location" value="{{ old('operating_location', $supplier->operating_location) }}"
+                           list="location_options" autocomplete="off"
+                           placeholder="e.g. Goa — leave blank if not location-specific"
+                           class="block w-full rounded-md border-slate-300 shadow-sm sm:text-sm">
+                    <datalist id="location_options">
+                        @foreach ($locations as $location)
+                            <option value="{{ $location }}"></option>
+                        @endforeach
+                    </datalist>
+                </x-field>
                 <x-field label="Status" name="is_active">
                     <label class="flex items-center gap-2 text-sm text-slate-700 py-2.5">
                         <input type="hidden" name="is_active" value="0">

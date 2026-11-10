@@ -25,6 +25,16 @@ class Customer extends Model
         return $this->hasMany(Enquiry::class);
     }
 
+    public function trips(): HasMany
+    {
+        return $this->hasMany(Trip::class);
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function followUps(): MorphMany
     {
         return $this->morphMany(FollowUp::class, 'followupable');

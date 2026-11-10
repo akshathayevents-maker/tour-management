@@ -262,7 +262,14 @@
             {{-- Booking items --}}
             <x-summary-panel title="Services">
                 @forelse ($booking->items as $item)
-                    @include('booking_items._item', ['item' => $item, 'locked' => $booking->isOperationallyLocked()])
+                    @include('booking_items._item', [
+                        'item' => $item,
+                        'locked' => $booking->isOperationallyLocked(),
+                        'destination' => $destination,
+                        'matchingSuppliers' => $matchingSuppliers,
+                        'otherSuppliers' => $otherSuppliers,
+                        'unspecifiedSuppliers' => $unspecifiedSuppliers,
+                    ])
                 @empty
                     <p class="text-sm text-slate-400">No services added yet.</p>
                 @endforelse

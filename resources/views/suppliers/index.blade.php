@@ -52,7 +52,7 @@
         @endif
     </div>
 
-    {{-- Search --}}
+    {{-- Search + location filter --}}
     <form method="GET" class="mb-5 flex flex-wrap items-center gap-2 bg-white border border-slate-200/80 rounded-xl px-3 py-2.5">
         <input type="hidden" name="type" value="{{ request('type') }}">
         <div class="relative flex-1 min-w-[220px]">
@@ -61,9 +61,16 @@
                    aria-label="Search suppliers by name"
                    class="w-full rounded-md border-slate-300 pl-8 shadow-sm text-sm">
         </div>
+        <select name="location" aria-label="Filter by operating location" onchange="this.form.submit()" class="rounded-md border-slate-300 shadow-sm text-sm">
+            <option value="">All locations</option>
+            @foreach ($locations as $location)
+                <option value="{{ $location }}" @selected(request('location') === $location)>{{ $location }}</option>
+            @endforeach
+            <option value="__unspecified__" @selected(request('location') === '__unspecified__')>Location not specified</option>
+        </select>
         <button type="submit" class="rounded-md bg-white border border-slate-300 text-slate-600 text-[13px] font-medium px-3 py-1.5 hover:bg-slate-50">Search</button>
-        @if (request()->filled('q'))
-            <a href="{{ request()->fullUrlWithQuery(['q' => null]) }}" class="text-xs font-medium text-slate-500 hover:text-slate-900">Clear search</a>
+        @if (request()->anyFilled(['q', 'location']))
+            <a href="{{ request()->fullUrlWithQuery(['q' => null, 'location' => null]) }}" class="text-xs font-medium text-slate-500 hover:text-slate-900">Clear</a>
         @endif
     </form>
 
@@ -101,7 +108,11 @@
                         <p class="text-xs text-slate-400">{{ $supplier->type?->label() ?? 'Uncategorised' }}</p>
                     </div>
 
-                    <div class="w-40 shrink-0 text-sm text-slate-600 truncate">
+                    <div class="w-32 shrink-0 text-sm text-slate-600 truncate">
+                        {{ $supplier->operating_location ?? '—' }}
+                    </div>
+
+                    <div class="w-36 shrink-0 text-sm text-slate-600 truncate">
                         {{ $supplier->phone ?? '—' }}
                     </div>
 
@@ -130,7 +141,10 @@
                             <x-avatar :name="$supplier->name" size="sm" />
                             <div class="min-w-0">
                                 <p class="text-sm font-medium text-slate-900 truncate">{{ $supplier->name }}</p>
-                                <p class="text-xs text-slate-400">{{ $supplier->type?->label() ?? 'Uncategorised' }}</p>
+                                <p class="text-xs text-slate-400">
+                                    {{ $supplier->type?->label() ?? 'Uncategorised' }}
+                                    @if ($supplier->operating_location) &middot; {{ $supplier->operating_location }} @endif
+                                </p>
                             </div>
                         </div>
                         <x-status-badge :color="$supplier->is_active ? 'green' : 'slate'" :label="$supplier->is_active ? 'Active' : 'Inactive'" />

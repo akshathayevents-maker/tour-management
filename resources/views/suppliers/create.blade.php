@@ -29,7 +29,8 @@
                    document.getElementById('preview-initials').textContent = nameVal ? nameVal.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase() : '—';
                    const typeSel = document.getElementById('type');
                    const typeLabel = typeSel.value ? typeSel.options[typeSel.selectedIndex].text : null;
-                   document.getElementById('preview-type').textContent = typeLabel || 'Partner profile';
+                   const locationVal = document.getElementById('operating_location').value.trim();
+                   document.getElementById('preview-type').textContent = [typeLabel, locationVal].filter(Boolean).join(' · ') || 'Partner profile';
                    const phone = document.getElementById('phone').value.trim();
                    const email = document.getElementById('email').value.trim();
                    const contactEl = document.getElementById('preview-contact');
@@ -69,6 +70,20 @@
                             </select>
                             <p class="form-help">Optional — helps you filter your supplier list.</p>
                             @error('type')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="operating_location" class="form-label">Operating location</label>
+                            <input id="operating_location" name="operating_location" value="{{ old('operating_location') }}"
+                                   list="location_options" autocomplete="off"
+                                   placeholder="e.g. Goa, Munnar — leave blank if not location-specific"
+                                   class="form-input">
+                            <datalist id="location_options">
+                                @foreach ($locations as $location)
+                                    <option value="{{ $location }}"></option>
+                                @endforeach
+                            </datalist>
+                            <p class="form-help">Optional — used to suggest this supplier first when booking a trip to the same destination.</p>
+                            @error('operating_location')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                     </div>
                 </section>
@@ -146,7 +161,7 @@
                         <span id="preview-initials" class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-600 text-lg font-semibold">{{ old('name') ? collect(explode(' ', trim(old('name'))))->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->join('') : '—' }}</span>
                         <p id="preview-name" class="mt-3 text-sm font-semibold text-slate-900">{{ old('name') ?: 'New supplier' }}</p>
                         <p id="preview-type" class="text-xs text-slate-400">
-                            {{ old('type') ? \App\Enums\SupplierType::from(old('type'))->label() : 'Partner profile' }}
+                            {{ collect([old('type') ? \App\Enums\SupplierType::from(old('type'))->label() : null, old('operating_location')])->filter()->join(' · ') ?: 'Partner profile' }}
                         </p>
                     </div>
                     <div id="preview-contact" class="space-y-1 border-t border-slate-50 pt-4">

@@ -16,6 +16,9 @@
                         @if ($supplier->type)
                             <span class="text-xs text-brand-300">{{ $supplier->type->label() }}</span>
                         @endif
+                        @if ($supplier->operating_location)
+                            <span class="text-xs text-brand-300">&middot; {{ $supplier->operating_location }}</span>
+                        @endif
                     </div>
                     <h2 class="text-2xl sm:text-[26px] font-semibold tracking-tight text-white">{{ $supplier->name }}</h2>
                     <p class="mt-1 text-sm text-brand-200">
@@ -109,6 +112,7 @@
         <div class="space-y-6">
             <x-summary-panel title="Details">
                 <dl class="divide-y divide-slate-50">
+                    <x-detail-row label="Operating location">{{ $supplier->operating_location ?? 'Not specified' }}</x-detail-row>
                     <x-detail-row label="Phone">{{ $supplier->phone ?? '—' }}</x-detail-row>
                     <x-detail-row label="WhatsApp">{{ $supplier->whatsapp ?? '—' }}</x-detail-row>
                     <x-detail-row label="Email">{{ $supplier->email ?? '—' }}</x-detail-row>
